@@ -1,0 +1,1214 @@
+
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเช็คชื่อนักเรียนออนไลน์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            background-color: #FFF7ED; /* Lighter Soft Pastel Orange Background */
+        }
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 4px solid transparent;
+            transition: all 0.3s ease;
+            color: #B08D57; /* Softer color for inactive tabs */
+            font-weight: 500;
+        }
+        .tab-button:hover {
+            background-color: #FFF3E0;
+            border-bottom-color: #FFD180; /* Lighter orange for hover */
+        }
+        .tab-button.active {
+            border-bottom-color: #FB8C00; /* Stronger Orange Accent */
+            color: #D97706; /* Darker Orange for active text */
+            font-weight: 700;
+            background-color: #FFF3E0;
+        }
+        .btn-primary {
+            background-color: #FFA726; /* Pastel Orange */
+            color: white;
+            padding: 12px 20px; /* Increased padding */
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background-color: #FB8C00; /* Darker Pastel Orange */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+         .btn-primary:active {
+            transform: translateY(0px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn-secondary {
+            background-color: #FFD180; /* Lighter Pastel Orange */
+            color: #8D6E63; /* Brownish text */
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-weight: 500;
+        }
+        .btn-secondary:hover {
+            background-color: #FFB74D;
+            transform: translateY(-1px);
+             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .btn-warning {
+            background-color: #F59E0B; /* Amber 500 */
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-weight: 500;
+        }
+        .btn-warning:hover {
+            background-color: #D97706; /* Amber 600 */
+            transform: translateY(-1px);
+             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+             transform: translateY(-1px);
+        }
+        .btn-success {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+             transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        .btn-success:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+        .status-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: white;
+            min-width: 60px;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+        }
+        .status-btn:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+        .status-present { background-color: #4CAF50; } /* Green */
+        .status-late { background-color: #FFC107; } /* Yellow */
+        .status-absent { background-color: #F44336; } /* Red */
+        .status-default { background-color: #E0E0E0; color: #333; } /* Grey */
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #FFF7ED; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #FFD180; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FFA726; }
+
+        select, input[type="date"], input[type="text"], input[type="number"], textarea {
+            border: 1px solid #FFD180; /* Slightly lighter border */
+            border-radius: 8px; /* More rounded */
+            padding: 10px; /* Increased padding */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #FFA726;
+            box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.25); /* Softer focus ring */
+        }
+        .editing-form {
+            border-color: #FB8C00; 
+            box-shadow: 0 0 0 3px rgba(251, 140, 0, 0.4); 
+        }
+        .main-card {
+            background-color: #FFFFFF;
+            padding: 24px; /* Increased padding */
+            border-radius: 12px; /* More rounded */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Softer shadow */
+        }
+        .table-hover tbody tr:hover {
+            background-color: #FFF9F2; /* Very light orange hover for table rows */
+        }
+
+         @media print {
+            body { background-color: white; }
+            .no-print { display: none !important; }
+            .print-container { padding: 0; margin: 0; box-shadow: none; border: none; }
+            table { font-size: 10pt; }
+            th, td { padding: 4px 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const App = () => {
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbyfN18x74p5OTpZqKz8TnNsM-KujFk8EzBsCCFq1-yh3E1zCvdB5sRmHwYMJHtc8ogfEg/exec";
+            // console.log("Current GAS_URL used in this app:", GAS_URL); 
+
+            const [currentPage, setCurrentPage] = React.useState('attendance'); 
+            const [students, setStudents] = React.useState([]); 
+            const [attendanceRecords, setAttendanceRecords] = React.useState({}); 
+            
+            const [isLoading, setIsLoading] = React.useState(false); 
+            const [filterDate, setFilterDate] = React.useState(new Date().toISOString().slice(0,10));
+            
+            const initialClassLevelsFullData = [ 
+                { abbr: 'อ.1', full: 'อนุบาล 1', teacher: ['ครูสมใจ ใจดี'] }, 
+                { abbr: 'อ.2', full: 'อนุบาล 2', teacher: ['ครูรักเรียน เพียรสอน'] }, 
+                { abbr: 'อ.3', full: 'อนุบาล 3', teacher: ['ครูเมตตา กรุณา'] },
+                { abbr: 'ป.1', full: 'ประถมศึกษาปีที่ 1', teacher: ['ครูวิชา เก่งกาจ', 'ครูเสริม สร้างดี'] }, 
+                { abbr: 'ป.2', full: 'ประถมศึกษาปีที่ 2', teacher: ['ครูมานะ อดทน'] }, 
+                { abbr: 'ป.3', full: 'ประถมศึกษาปีที่ 3', teacher: ['ครูพอใจ ยินดี'] },
+                { abbr: 'ป.4', full: 'ประถมศึกษาปีที่ 4', teacher: ['ครูศึกษา ใฝ่รู้'] }, 
+                { abbr: 'ป.5', full: 'ประถมศึกษาปีที่ 5', teacher: ['ครูสร้างสรรค์ ปัญญา'] }, 
+                { abbr: 'ป.6', full: 'ประถมศึกษาปีที่ 6', teacher: ['ครูพัฒนา ชาติไทย'] }
+            ];
+
+            const [classLevelsFull, setClassLevelsFull] = React.useState(() => {
+                const savedClassLevels = localStorage.getItem('classLevelsFull');
+                if (savedClassLevels) {
+                    const parsed = JSON.parse(savedClassLevels);
+                    return parsed.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) }));
+                }
+                return initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) }));
+            });
+            
+            const [filterClass, setFilterClass] = React.useState(classLevelsFull.length > 0 ? classLevelsFull[0].abbr : ''); 
+
+            const [printIndividualStatsInfo, setPrintIndividualStatsInfo] = React.useState({
+                data: null, startDate: '', endDate: '', selectedClass: '', show: false,
+            });
+
+            const GOOGLE_SHEET_LINK = "https://docs.google.com/spreadsheets/d/1yRh8kxnMyDtrsh1Lpko02joDLwebL_LE1k4Vk5lVyIM/edit?usp=sharing";
+            
+            const getFullClassName = (abbr) => {
+                const levelObj = classLevelsFull.find(l => l.abbr === abbr);
+                return levelObj ? levelObj.full : abbr; 
+            };
+
+             const getTeacherName = (abbr) => {
+                const levelObj = classLevelsFull.find(l => l.abbr === abbr);
+                if (levelObj && Array.isArray(levelObj.teacher) && levelObj.teacher.length > 0) {
+                    return levelObj.teacher.join(', ');
+                }
+                return 'ไม่พบข้อมูลครู';
+            };
+            
+            const jsonpRequest = (params) => {
+                return new Promise((resolve, reject) => {
+                    const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
+                    window[callbackName] = (data) => { 
+                        delete window[callbackName];
+                        if (document.body.contains(script)) { 
+                           document.body.removeChild(script);
+                        }
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    let url = `${GAS_URL}?callback=${callbackName}`;
+                    for (const key in params) {
+                        url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+                    }
+                    url += `&timestamp=${new Date().getTime()}`; 
+                    // console.log("Requesting JSONP URL:", url); 
+                    script.src = url;
+                    script.onerror = (errEvent) => { 
+                        // console.error("JSONP script.onerror event object:", JSON.stringify(errEvent, Object.getOwnPropertyNames(errEvent))); 
+                        delete window[callbackName];
+                        try { 
+                           if (script.parentNode && document.body.contains(script)) { 
+                             script.parentNode.removeChild(script);
+                           }
+                        } catch (removeError) {
+                            console.error("Error removing script tag on error:", removeError);
+                        }
+                        reject(new Error('JSONP request to GAS failed. \n1. Verify the GAS_URL in the code is the *exact* Web App URL from your latest GAS deployment. \n2. Check GAS deployment: "Execute as: Me", "Who has access: Anyone". \n3. Ensure a *new version* was deployed in GAS if code changed. \n4. Check GAS logs (View > Executions in GAS editor) for server-side errors. \n5. Open the failing JSONP URL (from console log above) directly in your browser. It should show a JavaScript function call (e.g., jsonpCallback_xxxx(...);). If it shows an error page, HTML, or is blank, the GAS script is not returning a valid JSONP response. Check browser Network tab for details on the failed script load.')); 
+                    };
+                    document.body.appendChild(script);
+                });
+            };
+
+            const fetchClassLevelsFullData = async () => {
+                setIsLoading(true);
+                // console.log("Fetching class levels from GAS URL (inside fetchClassLevelsFullData):", GAS_URL); 
+                try {
+                    const response = await jsonpRequest({ action: 'getClassLevelsFull' });
+                    if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+                        const formattedData = response.data.map(cls => ({
+                            ...cls,
+                            teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? String(cls.teacher).split(',').map(t => t.trim()).filter(t => t) : [])
+                        }));
+                        setClassLevelsFull(formattedData);
+                        localStorage.setItem('classLevelsFull', JSON.stringify(formattedData)); 
+                        // console.log("Class levels fetched and set from GAS:", formattedData);
+                         // Swal.fire('สำเร็จ!', 'โหลดข้อมูลครูประจำชั้นจาก Google Sheet เรียบร้อยแล้ว', 'success'); // Optional: can be too noisy
+                    } else {
+                        // console.warn("Failed to fetch class levels from GAS or data is empty, using initial/localStorage. Response:", response);
+                        const savedClassLevels = localStorage.getItem('classLevelsFull');
+                        if (savedClassLevels) {
+                            const parsed = JSON.parse(savedClassLevels);
+                            setClassLevelsFull(parsed.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
+                        } else {
+                            setClassLevelsFull(initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
+                            localStorage.setItem('classLevelsFull', JSON.stringify(initialClassLevelsFullData));
+                        }
+                         // Swal.fire('ไม่สำเร็จ', response.message || 'ไม่สามารถโหลดข้อมูลครูจาก Google Sheet ได้, แสดงข้อมูลที่บันทึกไว้ล่าสุด (ถ้ามี)', 'warning');
+                    }
+                } catch (error) {
+                    // console.error("Error in fetchClassLevelsFullData's jsonpRequest:", error);
+                     const savedClassLevels = localStorage.getItem('classLevelsFull');
+                        if (savedClassLevels) {
+                            const parsed = JSON.parse(savedClassLevels);
+                            setClassLevelsFull(parsed.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
+                        } else {
+                            setClassLevelsFull(initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
+                            localStorage.setItem('classLevelsFull', JSON.stringify(initialClassLevelsFullData));
+                        }
+                    // Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะโหลดข้อมูลครู', 'error');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+
+            React.useEffect(() => {
+                fetchClassLevelsFullData(); 
+            }, []);
+
+
+            const fetchStudentsFromSheet = async () => {
+                setIsLoading(true);
+                Swal.fire({ title: 'กำลังโหลดข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const response = await jsonpRequest({ action: 'getStudents' });
+                    if (response.success && Array.isArray(response.data)) {
+                        setStudents(response.data.map((s, index) => ({ 
+                            ...s, 
+                            id: `${s.studentIdNo || 'sId_empty'}_${s.classLevel || 'cLvl_empty'}_${index}` 
+                        })));
+                        Swal.fire('สำเร็จ!', 'โหลดข้อมูลนักเรียนเรียบร้อยแล้ว', 'success');
+                    } else {
+                        Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถโหลดข้อมูลนักเรียนได้', 'error');
+                        setStudents([]); 
+                    }
+                } catch (error) {
+                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลว', 'error');
+                    setStudents([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const saveStudentsToSheet = async (studentsToSave) => {
+                setIsLoading(true);
+                Swal.fire({ title: 'กำลังบันทึกข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const studentsToSaveCleaned = studentsToSave.map(({ id, ...rest }) => rest);
+                    const response = await jsonpRequest({ action: 'saveStudents', studentsData: JSON.stringify(studentsToSaveCleaned) });
+                    if (response.success) {
+                        Swal.fire('สำเร็จ!', 'บันทึกข้อมูลนักเรียนเรียบร้อยแล้ว', 'success');
+                        fetchStudentsFromSheet(); 
+                    } else {
+                        Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถบันทึกข้อมูลนักเรียนได้', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะบันทึก', 'error');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            
+            const fetchAttendanceFromSheet = async (date, classLevel) => {
+                if (!date || !classLevel) {
+                    Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่และชั้นเรียน', 'warning');
+                    return;
+                }
+                setIsLoading(true);
+                Swal.fire({ title: 'กำลังโหลดข้อมูลการเช็คชื่อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const response = await jsonpRequest({ action: 'getAttendance', date: date, classLevel: classLevel });
+                    if (response.success && Array.isArray(response.data)) {
+                        const key = `${date}_${classLevel}`;
+                        setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: response.data }));
+                        Swal.fire('สำเร็จ!', 'โหลดข้อมูลการเช็คชื่อเรียบร้อยแล้ว', 'success');
+                    } else {
+                        Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถโหลดข้อมูลการเช็คชื่อได้', 'error');
+                         const key = `${date}_${classLevel}`;
+                         setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: [] })); 
+                    }
+                } catch (error) {
+                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลว', 'error');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const saveAttendanceToSheet = async (date, classLevel, currentClassAttendance) => {
+                if (!date || !classLevel || !currentClassAttendance || currentClassAttendance.length === 0) {
+                     Swal.fire('ข้อมูลไม่ครบถ้วน', 'ไม่พบข้อมูลการเช็คชื่อสำหรับบันทึก', 'warning');
+                    return;
+                }
+                setIsLoading(true);
+                Swal.fire({ title: 'กำลังบันทึกข้อมูลการเช็คชื่อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const response = await jsonpRequest({ 
+                        action: 'saveAttendance', 
+                        attendanceData: JSON.stringify({ date, classLevel, records: currentClassAttendance })
+                    });
+                    if (response.success) {
+                        Swal.fire('สำเร็จ!', 'บันทึกข้อมูลการเช็คชื่อเรียบร้อยแล้ว', 'success');
+                        const key = `${date}_${classLevel}`;
+                        setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: currentClassAttendance }));
+                    } else {
+                        Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะบันทึก', 'error');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            React.useEffect(() => {
+                if (students.length === 0 && (currentPage === 'manageStudents' || currentPage === 'statistics' || currentPage === 'attendance' || currentPage === 'classStatistics' || currentPage === 'manageTeachers')) {
+                     fetchStudentsFromSheet(); 
+                }
+            }, [currentPage, students.length]);
+
+            const openGoogleSheet = () => { window.open(GOOGLE_SHEET_LINK, '_blank'); };
+
+            const handleShowPrintIndividualStats = (data, startDate, endDate, sClass) => {
+                setPrintIndividualStatsInfo({ data, startDate, endDate, selectedClass: sClass, show: true });
+            };
+
+            const handleHidePrintIndividualStats = () => {
+                setPrintIndividualStatsInfo({ data: null, startDate: '', endDate: '', selectedClass: '', show: false });
+            };
+
+            if (printIndividualStatsInfo.show) {
+                return <PrintIndividualStatsPage 
+                            stats={printIndividualStatsInfo.data} 
+                            startDate={printIndividualStatsInfo.startDate}
+                            endDate={printIndividualStatsInfo.endDate}
+                            selectedClassProp={printIndividualStatsInfo.selectedClass}
+                            onClose={handleHidePrintIndividualStats} 
+                            classLevelsFull={classLevelsFull} 
+                            getFullClassName={getFullClassName}
+                            getTeacherName={getTeacherName}
+                        />;
+            }
+
+            return (
+                <div className="min-h-screen bg-[#FFF7ED] p-4 md:p-8">
+                    <Header />
+                    <NavigationTabs currentPage={currentPage} setCurrentPage={setCurrentPage} />
+                    <MainContent 
+                        currentPage={currentPage} 
+                        students={students}
+                        setStudents={setStudents}
+                        attendanceRecords={attendanceRecords}
+                        setAttendanceRecords={setAttendanceRecords}
+                        isLoading={isLoading}
+                        setIsLoading={setIsLoading} 
+                        classLevelsFull={classLevelsFull} 
+                        setClassLevelsFull={setClassLevelsFull} 
+                        fetchClassLevelsFullData={fetchClassLevelsFullData} 
+                        getFullClassName={getFullClassName} 
+                        getTeacherName={getTeacherName}
+                        filterDate={filterDate}
+                        setFilterDate={setFilterDate}
+                        filterClass={filterClass}
+                        setFilterClass={setFilterClass}
+                        fetchStudentsFromSheet={fetchStudentsFromSheet}
+                        saveStudentsToSheet={saveStudentsToSheet}
+                        fetchAttendanceFromSheet={fetchAttendanceFromSheet}
+                        saveAttendanceToSheet={saveAttendanceToSheet}
+                        openGoogleSheet={openGoogleSheet}
+                        jsonpRequest={jsonpRequest} 
+                        GAS_URL={GAS_URL} 
+                        showPrintIndividualStats={handleShowPrintIndividualStats}
+                    />
+                </div>
+            );
+        };
+
+        const Header = () => (
+            <header className="text-center mb-8 pb-6 border-b-4 border-orange-200">
+                {/* Logo removed from here */}
+                <div>
+                    <h1 className="text-5xl font-bold text-orange-700 tracking-tight" style={{ textShadow: '2px 2px 4px rgba(239, 108, 0, 0.2)' }}>
+                        ระบบเช็คชื่อนักเรียนออนไลน์
+                    </h1>
+                    <p className="text-2xl text-orange-600 mt-2 font-medium">
+                        โรงเรียนวัดชัยชนะสงคราม(วัดตึก)
+                    </p>
+                </div>
+            </header>
+        );
+
+        const NavigationTabs = ({ currentPage, setCurrentPage }) => (
+            <nav className="flex flex-wrap justify-center items-center mb-8 bg-white shadow-lg rounded-xl p-2">
+                <button 
+                    className={`tab-button ${currentPage === 'attendance' ? 'active' : ''}`}
+                    onClick={() => setCurrentPage('attendance')}>
+                    <i className="fas fa-check-circle mr-2"></i>เช็คชื่อนักเรียน
+                </button>
+                <button 
+                    className={`tab-button ${currentPage === 'statistics' ? 'active' : ''}`}
+                    onClick={() => setCurrentPage('statistics')}>
+                    <i className="fas fa-chart-line mr-2"></i>สถิติรายบุคคล
+                </button>
+                 <button 
+                    className={`tab-button ${currentPage === 'classStatistics' ? 'active' : ''}`}
+                    onClick={() => setCurrentPage('classStatistics')}>
+                    <i className="fas fa-chart-pie mr-2"></i>สถิติรวมชั้นเรียน
+                </button>
+                <button 
+                    className={`tab-button ${currentPage === 'manageStudents' ? 'active' : ''}`}
+                    onClick={() => setCurrentPage('manageStudents')}>
+                    <i className="fas fa-users-cog mr-2"></i>จัดการรายชื่อนักเรียน
+                </button>
+                 <button 
+                    className={`tab-button ${currentPage === 'manageTeachers' ? 'active' : ''}`}
+                    onClick={() => setCurrentPage('manageTeachers')}>
+                    <i className="fas fa-chalkboard-teacher mr-2"></i>จัดการรายชื่อครู
+                </button>
+            </nav>
+        );
+
+        const MainContent = (props) => {
+            switch (props.currentPage) {
+                case 'attendance':
+                    return <AttendancePage {...props} />;
+                case 'statistics':
+                    return <StatisticsPage {...props} />;
+                case 'classStatistics':
+                    return <ClassStatisticsPage {...props} />;
+                case 'manageStudents':
+                    return <StudentManagementPage {...props} />;
+                case 'manageTeachers':
+                    return <ManageTeachersPage {...props} />;
+                default:
+                    return <AttendancePage {...props} />;
+            }
+        };
+
+        // --- Attendance Page ---
+        const AttendancePage = ({ 
+            students, attendanceRecords, setAttendanceRecords, isLoading, classLevelsFull, getFullClassName, getTeacherName,
+            filterDate, setFilterDate, filterClass, setFilterClass, 
+            fetchAttendanceFromSheet, saveAttendanceToSheet, openGoogleSheet 
+        }) => {
+            const attendanceKey = `${filterDate}_${filterClass}`;
+            const currentClassAttendance = attendanceRecords[attendanceKey] || [];
+            const studentsInClass = students.filter(s => s.classLevel === filterClass);
+
+            React.useEffect(() => {
+                if (studentsInClass.length > 0 && (!attendanceRecords[attendanceKey] || attendanceRecords[attendanceKey].length !== studentsInClass.length)) {
+                    const initialAttendance = studentsInClass.map(student => {
+                        const existingRecord = attendanceRecords[attendanceKey]?.find(ar => ar.studentId === student.studentIdNo);
+                        return existingRecord || { studentId: student.studentIdNo, studentName: student.name, status: '' }; 
+                    });
+                     setAttendanceRecords(prev => ({ ...prev, [attendanceKey]: initialAttendance }));
+                }
+            }, [filterDate, filterClass, students, studentsInClass.length]); 
+
+            const handleStatusChange = (studentId, newStatus) => {
+                setAttendanceRecords(prevRecords => {
+                    const updatedClassAttendance = (prevRecords[attendanceKey] || studentsInClass.map(s => ({studentId: s.studentIdNo, studentName: s.name, status: ''}))).map(record =>
+                        record.studentId === studentId ? { ...record, status: newStatus } : record
+                    );
+                    return { ...prevRecords, [attendanceKey]: updatedClassAttendance };
+                });
+            };
+            const getStatusColor = (status) => {
+                if (status === 'มา') return 'status-present';
+                if (status === 'ลา') return 'status-late';
+                if (status === 'ขาด') return 'status-absent';
+                return 'status-default';
+            };
+
+            const handleResetAttendance = () => {
+                if (studentsInClass.length === 0) {
+                    Swal.fire('ไม่มีนักเรียน', 'ไม่พบรายชื่อนักเรียนในชั้นเรียนนี้เพื่อรีเซ็ต', 'info');
+                    return;
+                }
+                Swal.fire({
+                    title: 'ยืนยันการรีเซ็ต',
+                    text: `คุณต้องการรีเซ็ตสถานะการเช็คชื่อของนักเรียนทั้งหมดในห้อง ${getFullClassName(filterClass)} สำหรับวันที่ ${new Date(filterDate).toLocaleDateString('th-TH')} หรือไม่? (การเปลี่ยนแปลงนี้จะมีผลในหน้าเว็บเท่านั้น ต้องกดบันทึกเพื่ออัปเดต Google Sheet)`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#FFA726',
+                    cancelButtonColor: '#757575',
+                    confirmButtonText: 'ใช่, รีเซ็ตเลย!',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const resetAttendance = studentsInClass.map(student => ({
+                            studentId: student.studentIdNo,
+                            studentName: student.name,
+                            status: '' // Reset to default/empty status
+                        }));
+                        setAttendanceRecords(prevRecords => ({
+                            ...prevRecords,
+                            [attendanceKey]: resetAttendance
+                        }));
+                        Swal.fire('รีเซ็ตแล้ว!', 'สถานะการเช็คชื่อถูกรีเซ็ตแล้ว กรุณากดบันทึกเพื่อยืนยันการเปลี่ยนแปลงลง Google Sheet', 'success');
+                    }
+                });
+            };
+
+
+            return (
+                <div className="main-card">
+                    <h2 className="text-3xl font-semibold mb-3 text-orange-600">หน้าเช็คชื่อนักเรียน</h2>
+                    <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 mb-3 items-end bg-orange-50 p-4 rounded-lg">
+                        <div>
+                            <label htmlFor="date-picker" className="block text-sm font-medium text-gray-700 mb-1">เลือกวันที่:</label>
+                            <input type="date" id="date-picker" className="w-full" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+                        </div>
+                        <div>
+                            <label htmlFor="class-selector" className="block text-sm font-medium text-gray-700 mb-1">เลือกชั้นเรียน:</label>
+                            <select id="class-selector" className="w-full" value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
+                                {classLevelsFull.map(level => <option key={level.abbr} value={level.abbr}>{level.full}</option>)}
+                            </select>
+                        </div>
+                        <button onClick={() => fetchAttendanceFromSheet(filterDate, filterClass)} className="btn-secondary h-12 text-base" disabled={isLoading}>
+                            <i className="fas fa-cloud-download-alt mr-2"></i>เรียกดูข้อมูล
+                        </button>
+                         <button onClick={handleResetAttendance} className="btn-warning h-12 text-base" disabled={isLoading || studentsInClass.length === 0}>
+                            <i className="fas fa-undo mr-2"></i>รีเซ็ตสถานะ
+                        </button>
+                    </div>
+                     {filterClass && <p className="text-md text-orange-700 mb-6 font-medium">ครูประจำชั้น: {getTeacherName(filterClass)}</p>}
+
+                    {isLoading && <p className="text-center py-4 text-orange-600">กำลังโหลดข้อมูล...</p>}
+                    {!isLoading && studentsInClass.length === 0 && filterClass && (<p className="text-center py-4 text-gray-500 bg-amber-50 p-3 rounded-md">ไม่พบรายชื่อนักเรียนสำหรับชั้น {getFullClassName(filterClass)} หรือยังไม่ได้เพิ่มนักเรียนในระบบ</p>)}
+                    {!isLoading && studentsInClass.length > 0 && (
+                        <div className="overflow-x-auto shadow-md rounded-lg">
+                            <table className="min-w-full divide-y divide-orange-200 table-hover">
+                                <thead className="bg-orange-100"><tr><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">เลขที่</th><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ชื่อ-สกุล</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">สถานะ</th></tr></thead>
+                                <tbody className="bg-white divide-y divide-gray-200">{
+                                    studentsInClass.map(student => {
+                                        const record = (currentClassAttendance || []).find(ar => ar.studentId === student.studentIdNo) || { status: '' };
+                                        return (
+                                            <tr key={student.id} className="hover:bg-orange-50 transition-colors duration-150">
+                                                <td className="px-6 py-4 whitespace-nowrap text-gray-700">{student.studentIdNo}</td><td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">{student.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-center space-x-2">
+                                                    {['มา', 'ลา', 'ขาด'].map(statusOption => (<button key={statusOption} onClick={() => handleStatusChange(student.studentIdNo, statusOption)} className={`status-btn ${record.status === statusOption ? getStatusColor(statusOption) : 'bg-gray-300 hover:bg-gray-400 text-gray-700'}`}>{statusOption}</button>))}
+                                                </td>
+                                            </tr>);
+                                    })
+                                }</tbody>
+                            </table>
+                        </div>
+                    )}
+                    <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <button onClick={() => saveAttendanceToSheet(filterDate, filterClass, currentClassAttendance.filter(att => att.status !== ''))} className="btn-primary w-full sm:w-auto" disabled={isLoading || studentsInClass.length === 0}><i className="fas fa-save mr-2"></i>บันทึกข้อมูลลง Google Sheet</button>
+                        <button onClick={openGoogleSheet} className="btn-secondary w-full sm:w-auto"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button>
+                    </div>
+                </div>);
+        };
+
+        // --- Statistics Page (Individual Student Stats) ---
+        const StatisticsPage = ({ 
+            students, isLoading, classLevelsFull, getFullClassName, getTeacherName,
+            openGoogleSheet, jsonpRequest, showPrintIndividualStats
+        }) => {
+            const [mainStartDate, setMainStartDate] = React.useState(() => localStorage.getItem('defaultStatStartDate') || '2025-05-15'); 
+            const [mainEndDate, setMainEndDate] = React.useState(new Date().toISOString().slice(0,10));
+            const [selectedStatClass, setSelectedStatClass] = React.useState(classLevelsFull.length > 0 ? classLevelsFull[0].abbr : ''); 
+            const [studentStatsData, setStudentStatsData] = React.useState(null); 
+            const [isStatsLoading, setIsStatsLoading] = React.useState(false);
+
+            const handleSetDefaultMainStartDate = () => {
+                if (mainStartDate) {
+                    localStorage.setItem('defaultStatStartDate', mainStartDate);
+                    Swal.fire('สำเร็จ!', `บันทึกวันที่เริ่มต้น (สำหรับสถิติรายบุคคล) เป็น ${new Date(mainStartDate).toLocaleDateString('th-TH')} แล้ว`, 'success');
+                } else {
+                    Swal.fire('ผิดพลาด!', 'กรุณาเลือกวันที่เริ่มต้น (สำหรับสถิติรายบุคคล) ก่อน', 'error');
+                }
+            };
+
+            const calculateIndividualStatistics = async () => {
+                if (!mainStartDate || !mainEndDate) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกช่วงวันที่สำหรับสถิติรายบุคคล', 'warning'); return; }
+                if (new Date(mainStartDate) > new Date(mainEndDate)) { Swal.fire('วันที่ไม่ถูกต้อง', 'วันที่เริ่มต้นสำหรับสถิติรายบุคคลต้องมาก่อนวันที่สิ้นสุด', 'warning'); return; }
+                if (students.length === 0) { Swal.fire('ไม่มีข้อมูลนักเรียน', 'กรุณาเพิ่มข้อมูลนักเรียนก่อนดูสถิติ', 'info'); return; }
+                if (!selectedStatClass) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกห้องเรียน', 'warning'); return; }
+
+                setIsStatsLoading(true);
+                Swal.fire({ title: 'กำลังคำนวณสถิติรายบุคคล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const response = await jsonpRequest({ action: 'getAttendanceRange', startDate: mainStartDate, endDate: mainEndDate });
+                    if (response.success && Array.isArray(response.data)) {
+                        const recordsInRange = response.data;
+                        const filteredStudents = students.filter(s => s.classLevel === selectedStatClass);
+                        const calculatedStudentStats = filteredStudents.map(student => {
+                            const relevantRecords = recordsInRange.filter(r => r.studentId === student.studentIdNo && r.classLevel === student.classLevel);
+                            const presentCount = relevantRecords.filter(r => r.status === 'มา').length;
+                            const absentCount = relevantRecords.filter(r => r.status === 'ขาด').length;
+                            const leaveCount = relevantRecords.filter(r => r.status === 'ลา').length;
+                            const totalChecked = relevantRecords.length;
+                            const percentage = totalChecked > 0 ? Math.round((presentCount / totalChecked) * 100) : 0;
+                            return { ...student, presentCount, absentCount, leaveCount, totalChecked, percentage };
+                        });
+                        setStudentStatsData(calculatedStudentStats);
+                        Swal.close();
+                    } else {
+                         Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถโหลดข้อมูลสำหรับสถิติรายบุคคลได้', 'error');
+                         setStudentStatsData(null);
+                    }
+                } catch (error) {
+                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะคำนวณสถิติ', 'error');
+                    setStudentStatsData(null);
+                } finally {
+                    setIsStatsLoading(false);
+                }
+            };
+
+            return (
+                <div className="main-card">
+                    <h2 className="text-3xl font-semibold mb-4 text-orange-600">สถิติการมาเรียนรายบุคคล</h2>
+                    <div className="border border-dashed border-orange-200 p-4 rounded-lg mb-6 bg-orange-50/50">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+                            <div><label htmlFor="main-start-date" className="block text-sm font-medium text-gray-700 mb-1">ตั้งแต่วันที่:</label><input type="date" id="main-start-date" className="w-full" value={mainStartDate} onChange={e => setMainStartDate(e.target.value)} /></div>
+                            <div><label htmlFor="main-end-date" className="block text-sm font-medium text-gray-700 mb-1">ถึงวันที่:</label><input type="date" id="main-end-date" className="w-full" value={mainEndDate} onChange={e => setMainEndDate(e.target.value)} /></div>
+                            <div><label htmlFor="stat-class-filter" className="block text-sm font-medium text-gray-700 mb-1">เลือกห้องเรียน:</label>
+                                <select id="stat-class-filter" className="w-full" value={selectedStatClass} onChange={e => setSelectedStatClass(e.target.value)}>
+                                    {classLevelsFull.map(level => <option key={level.abbr} value={level.abbr}>{level.full}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        {selectedStatClass && <p className="text-xs text-orange-700 mt-2">ครูประจำชั้น: {getTeacherName(selectedStatClass)}</p>}
+                         <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center">
+                             <button onClick={handleSetDefaultMainStartDate} className="btn-secondary text-xs py-1 px-2" disabled={isLoading}><i className="fas fa-save mr-1"></i>ตั้งเป็นวันที่เริ่มต้นเริ่มต้น</button>
+                             <button onClick={calculateIndividualStatistics} className="btn-primary h-12 text-base mt-2 sm:mt-0" disabled={isStatsLoading || isLoading}><i className="fas fa-calculator mr-2"></i>แสดงสถิติรายบุคคล</button>
+                        </div>
+                    </div>
+                    {isStatsLoading && <p className="text-center py-4 text-orange-600">กำลังคำนวณสถิติ...</p>}
+                    {studentStatsData && !isStatsLoading && (
+                        <div>
+                            <div className="flex justify-between items-center mb-3">
+                                <div>
+                                    <h3 className="text-xl font-semibold mt-6 mb-1 text-orange-600">สถิติรายบุคคล (ห้อง {getFullClassName(selectedStatClass)})</h3>
+                                    {mainStartDate && mainEndDate && (<p className="text-sm text-gray-600">ข้อมูลสำหรับช่วงวันที่: {new Date(mainStartDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(mainEndDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>)}
+                                </div>
+                                <button onClick={() => showPrintIndividualStats(studentStatsData, mainStartDate, mainEndDate, selectedStatClass)} className="btn-primary no-print"><i className="fas fa-print mr-2"></i>พิมพ์รายงานหน้านี้</button>
+                            </div>
+                            <div className="overflow-x-auto shadow-md rounded-lg">
+                                <table className="min-w-full divide-y divide-orange-200 table-hover">
+                                    <thead className="bg-orange-100"><tr><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">เลขที่</th><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ชื่อ-สกุล</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">วันมาเรียน</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">วันลา</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">วันขาด</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">% การมา (จากวันที่เช็ค)</th></tr></thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">{
+                                        studentStatsData.sort((a,b) => {
+                                            const idNoA_raw = a.studentIdNo; const idNoB_raw = b.studentIdNo;
+                                            const idNoA_int = parseInt(idNoA_raw, 10); const idNoB_int = parseInt(idNoB_raw, 10);
+                                            if (!isNaN(idNoA_int) && !isNaN(idNoB_int)) { return idNoA_int - idNoB_int; }
+                                            const idNoA_str = String(idNoA_raw || ""); const idNoB_str = String(idNoB_raw || "");
+                                            return idNoA_str.localeCompare(idNoB_str);
+                                        }).map(student => (
+                                            <tr key={student.id} className="hover:bg-orange-50 transition-colors duration-150"><td className="px-6 py-4 text-gray-700">{student.studentIdNo}</td><td className="px-6 py-4 text-gray-800 font-medium">{student.name}</td><td className="px-6 py-4 text-center text-green-600 font-semibold">{student.presentCount}</td><td className="px-6 py-4 text-center text-amber-600 font-semibold">{student.leaveCount}</td><td className="px-6 py-4 text-center text-red-600 font-semibold">{student.absentCount}</td><td className="px-6 py-4 text-center text-gray-700 font-semibold">{student.percentage}%</td></tr>
+                                        ))
+                                    }</tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                     <div className="mt-8 flex justify-end"><button onClick={openGoogleSheet} className="btn-secondary"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button></div>
+                </div>);
+        };
+
+        // --- Class Statistics Page ---
+        const ClassStatisticsPage = ({ 
+            students, isLoading, classLevelsFull, getFullClassName, getTeacherName,
+            openGoogleSheet, jsonpRequest 
+        }) => {
+            const defaultInitialDate = localStorage.getItem('classAggSelectedDate') || new Date().toISOString().slice(0,10);
+            const [classAggSelectedDate, setClassAggSelectedDate] = React.useState(defaultInitialDate);
+            const [classAggStatsData, setClassAggStatsData] = React.useState(null);
+            const [isClassStatsLoading, setIsClassStatsLoading] = React.useState(false);
+
+            React.useEffect(() => { localStorage.setItem('classAggSelectedDate', classAggSelectedDate); }, [classAggSelectedDate]);
+
+            const calculateClassAggregateStatistics = async () => {
+                if (!classAggSelectedDate) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่สำหรับสถิติรวมตามชั้นเรียน', 'warning'); return; }
+                if (students.length === 0) { Swal.fire('ไม่มีข้อมูลนักเรียน', 'กรุณาเพิ่มข้อมูลนักเรียนก่อนดูสถิติ', 'info'); return; }
+                setIsClassStatsLoading(true);
+                Swal.fire({ title: 'กำลังคำนวณสถิติรวมชั้นเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const response = await jsonpRequest({ action: 'getAttendanceRange', startDate: classAggSelectedDate, endDate: classAggSelectedDate });
+                    if (response.success && Array.isArray(response.data)) {
+                        const recordsForSelectedDate = response.data;
+                        const calculatedClassStats = {};
+                        classLevelsFull.forEach(levelObj => { 
+                            const level = levelObj.abbr; 
+                            const studentsInThisClass = students.filter(s => s.classLevel === level);
+                            if (studentsInThisClass.length === 0) {
+                                calculatedClassStats[level] = { presentRate: 0, totalStudents: 0, totalPresent: 0, totalAbsent: 0, totalLeave: 0, totalCheckedSessions:0, teacher: getTeacherName(level) };
+                                return;
+                            }
+                            let totalPresentForClass = 0, totalAbsentForClass = 0, totalLeaveForClass = 0, totalCheckedSessionsForClass = 0;
+                            studentsInThisClass.forEach(student => {
+                                const studentRecords = recordsForSelectedDate.filter(r => r.studentId === student.studentIdNo && r.classLevel === level);
+                                totalPresentForClass += studentRecords.filter(r => r.status === 'มา').length;
+                                totalAbsentForClass += studentRecords.filter(r => r.status === 'ขาด').length;
+                                totalLeaveForClass += studentRecords.filter(r => r.status === 'ลา').length;
+                                totalCheckedSessionsForClass += studentRecords.length; 
+                            });
+                            const presentRate = totalCheckedSessionsForClass > 0 ? Math.round((totalPresentForClass / totalCheckedSessionsForClass) * 100) : 0;
+                            calculatedClassStats[level] = { presentRate, totalStudents: studentsInThisClass.length, totalPresent: totalPresentForClass, totalAbsent: totalAbsentForClass, totalLeave: totalLeaveForClass, totalCheckedSessions: totalCheckedSessionsForClass, teacher: getTeacherName(level) };
+                        });
+                        setClassAggStatsData(calculatedClassStats);
+                        Swal.close();
+                    } else {
+                         Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถโหลดข้อมูลสำหรับสถิติได้', 'error');
+                         setClassAggStatsData(null);
+                    }
+                } catch (error) {
+                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะคำนวณสถิติ', 'error');
+                    setClassAggStatsData(null);
+                } finally {
+                    setIsClassStatsLoading(false);
+                }
+            };
+            
+            return (
+                <div className="main-card">
+                    <h2 className="text-3xl font-semibold mb-4 text-orange-600">สถิติการมาเรียนรวมตามชั้นเรียน</h2>
+                     <div className="border border-dashed border-orange-200 p-4 rounded-lg mb-6 bg-orange-50/50">
+                        <p className="text-md font-semibold text-gray-700 mb-2">เลือกวันที่สำหรับดูสถิติรวมตามชั้นเรียน:</p>
+                         <div className="grid md:grid-cols-2 gap-6 items-end">
+                            <div><label htmlFor="class-agg-selected-date-page" className="block text-sm font-medium text-gray-700 mb-1">เลือกวันที่:</label><input type="date" id="class-agg-selected-date-page" className="w-full" value={classAggSelectedDate} onChange={e => setClassAggSelectedDate(e.target.value)} /></div>
+                            <button onClick={calculateClassAggregateStatistics} className="btn-primary h-12 text-base" disabled={isClassStatsLoading || isLoading}><i className="fas fa-calculator mr-2"></i>แสดงสถิติรวมชั้นเรียน</button>
+                        </div>
+                    </div>
+                    {isClassStatsLoading && <p className="text-center py-4 text-orange-600">กำลังคำนวณสถิติ...</p>}
+                    {classAggStatsData && !isClassStatsLoading && (
+                        <div>
+                             {classAggSelectedDate && (<p className="text-sm text-gray-600 mb-3 text-center">ข้อมูลสำหรับวันที่: {new Date(classAggSelectedDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>)}
+                             <div className="overflow-x-auto shadow-md rounded-lg">
+                                <table className="min-w-full divide-y divide-orange-200 table-hover">
+                                    <thead className="bg-orange-100"><tr><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ชั้นเรียน</th><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ครูประจำชั้น</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">นักเรียนทั้งหมด</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">มา</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">ลา</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">ขาด</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">เช็คชื่อ</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">% การมา</th></tr></thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">{
+                                        classLevelsFull.map(levelObj => { 
+                                            const classStat = classAggStatsData[levelObj.abbr]; 
+                                            return classStat ? (<tr key={levelObj.abbr} className="hover:bg-orange-50 transition-colors duration-150"><td className="px-6 py-4 text-gray-800 font-medium">{levelObj.full}</td><td className="px-4 py-2 text-gray-700">{classStat.teacher}</td><td className="px-6 py-4 text-center text-gray-700">{classStat.totalStudents}</td><td className="px-6 py-4 text-center text-green-600 font-semibold">{classStat.totalPresent}</td><td className="px-6 py-4 text-center text-amber-600 font-semibold">{classStat.totalLeave}</td><td className="px-6 py-4 text-center text-red-600 font-semibold">{classStat.totalAbsent}</td><td className="px-6 py-4 text-center text-gray-700">{classStat.totalCheckedSessions}</td><td className="px-6 py-4 text-center text-gray-700 font-semibold">{classStat.presentRate}%</td></tr>) : null;
+                                        })
+                                    }</tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                    <div className="mt-8 flex justify-end"><button onClick={openGoogleSheet} className="btn-secondary"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button></div>
+                </div>);
+        };
+
+        // --- Student Management Page ---
+        const StudentManagementPage = ({ 
+            students, setStudents, isLoading, classLevelsFull, getFullClassName,
+            fetchStudentsFromSheet, saveStudentsToSheet: saveAllStudentsToSheet, openGoogleSheet,
+            jsonpRequest, GAS_URL 
+        }) => {
+            const [formStudentIdNo, setFormStudentIdNo] = React.useState('');
+            const [formName, setFormName] = React.useState('');
+            const [formClassLevel, setFormClassLevel] = React.useState(classLevelsFull.length > 0 ? classLevelsFull[0].abbr : '');
+            const [editingStudentId, setEditingStudentId] = React.useState(null); 
+            const [multiAddText, setMultiAddText] = React.useState('');
+            const [filterManageClass, setFilterManageClass] = React.useState(classLevelsFull.length > 0 ? classLevelsFull[0].abbr : ''); 
+            const studentIdInputRef = React.useRef(null); 
+
+            React.useEffect(() => {
+                if (editingStudentId && studentIdInputRef.current) { studentIdInputRef.current.focus(); } 
+            }, [editingStudentId]);
+            
+            React.useEffect(() => {
+                if (!editingStudentId && studentIdInputRef.current) { studentIdInputRef.current.focus(); }
+            }, []); 
+
+            const handleAddStudent = async () => {
+                if (!formStudentIdNo || !formName || !formClassLevel) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณากรอก เลขที่, ชื่อ-สกุล, และชั้นเรียน', 'warning'); return; }
+                const newStudentData = { studentIdNo: formStudentIdNo, name: formName, classLevel: formClassLevel };
+                const studentExists = students.find(s => s.studentIdNo === formStudentIdNo && s.classLevel === formClassLevel);
+                if (editingStudentId) { 
+                    const studentToEdit = students.find(s => s.id === editingStudentId); 
+                    if (studentExists && studentToEdit && (studentToEdit.studentIdNo !== formStudentIdNo || studentToEdit.classLevel !== formClassLevel)) { Swal.fire('ข้อมูลซ้ำซ้อน', `มีนักเรียนเลขที่ ${formStudentIdNo} ในชั้น ${getFullClassName(formClassLevel)} อยู่แล้ว`, 'error'); return; }
+                    Swal.fire({ title: 'กำลังแก้ไขข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    try {
+                        const response = await jsonpRequest({ action: 'editStudent', studentData: JSON.stringify({ oldStudentIdNo: studentToEdit.studentIdNo, oldClassLevel: studentToEdit.classLevel, ...newStudentData }) });
+                        if (response.success) { Swal.fire('สำเร็จ!', 'แก้ไขข้อมูลนักเรียนเรียบร้อยแล้ว', 'success'); fetchStudentsFromSheet(); } 
+                        else { Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถแก้ไขข้อมูลได้', 'error'); }
+                    } catch (err) { Swal.fire('ผิดพลาด!', 'การเชื่อมต่อล้มเหลวขณะแก้ไข', 'error'); }
+                } else { 
+                    if (studentExists) { Swal.fire('ข้อมูลซ้ำซ้อน', `มีนักเรียนเลขที่ ${formStudentIdNo} ในชั้น ${getFullClassName(formClassLevel)} อยู่แล้ว`, 'error'); return; }
+                    Swal.fire({ title: 'กำลังเพิ่มข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                     try {
+                        const response = await jsonpRequest({ action: 'addStudent', studentData: JSON.stringify(newStudentData) });
+                        if (response.success) { Swal.fire('สำเร็จ!', 'เพิ่มนักเรียนเรียบร้อยแล้ว', 'success'); fetchStudentsFromSheet(); } 
+                        else { Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถเพิ่มข้อมูลได้', 'error'); }
+                    } catch (err) { Swal.fire('ผิดพลาด!', 'การเชื่อมต่อล้มเหลวขณะเพิ่ม', 'error'); }
+                }
+                resetForm();
+            };
+
+            const handleMultiAddStudents = async () => {
+                if (!multiAddText.trim()) { Swal.fire('ไม่มีข้อมูล', 'กรุณาใส่ข้อมูลนักเรียนในช่องข้อความ', 'warning'); return; }
+                const lines = multiAddText.trim().split('\n'); const newStudentsList = []; const errors = [];
+                lines.forEach((line, index) => {
+                    const parts = line.split(',').map(p => p.trim());
+                    if (parts.length === 3) {
+                        const [idNo, name, classLvlAbbr] = parts; 
+                        const classLevelObj = classLevelsFull.find(l => l.abbr === classLvlAbbr || l.full === classLvlAbbr); 
+                        const validClassAbbr = classLevelObj ? classLevelObj.abbr : null;
+
+                        if (idNo && name && validClassAbbr) {
+                            if (!students.find(s => s.studentIdNo === idNo && s.classLevel === validClassAbbr) && !newStudentsList.find(s => s.studentIdNo === idNo && s.classLevel === validClassAbbr)) { 
+                                newStudentsList.push({ studentIdNo: idNo, name: name, classLevel: validClassAbbr }); 
+                            } else { errors.push(`บรรทัดที่ ${index + 1}: นักเรียนเลขที่ ${idNo} ชั้น ${getFullClassName(validClassAbbr)} มีอยู่แล้ว หรือซ้ำซ้อนในรายการที่เพิ่ม`); }
+                        } else { errors.push(`บรรทัดที่ ${index + 1}: ข้อมูลไม่ถูกต้อง (รูปแบบ: เลขที่,ชื่อ-สกุล,ชั้นเรียน) หรือชั้นเรียนไม่ถูกต้อง`); }
+                    } else { errors.push(`บรรทัดที่ ${index + 1}: รูปแบบข้อมูลไม่ถูกต้อง (ต้องมี 3 ส่วนคั่นด้วยจุลภาค)`); }
+                });
+                if (errors.length > 0) { Swal.fire({ title: 'มีข้อผิดพลาดในการเพิ่มข้อมูล', html: `<div class="text-left max-h-60 overflow-y-auto">${errors.join('<br>')}</div>`, icon: 'error' }); return; }
+                if (newStudentsList.length > 0) {
+                    Swal.fire({ title: 'กำลังเพิ่มข้อมูลนักเรียนหลายคน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    try {
+                        const response = await jsonpRequest({ action: 'addMultipleStudents', studentsData: JSON.stringify(newStudentsList) });
+                        if (response.success) { Swal.fire('สำเร็จ!', `เพิ่มนักเรียน ${newStudentsList.length} คนเรียบร้อยแล้ว`, 'success'); fetchStudentsFromSheet(); setMultiAddText(''); } 
+                        else { Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถเพิ่มข้อมูลนักเรียนได้', 'error'); }
+                    } catch (err) { Swal.fire('ผิดพลาด!', 'การเชื่อมต่อล้มเหลวขณะเพิ่มนักเรียนหลายคน', 'error'); }
+                } else { Swal.fire('ไม่มีข้อมูลใหม่', 'ไม่พบนักเรียนใหม่ที่สามารถเพิ่มได้จากข้อมูลที่ป้อน', 'info'); }
+            };
+
+            const handleEditStudent = (student) => {
+                setFormStudentIdNo(student.studentIdNo); setFormName(student.name); setFormClassLevel(student.classLevel); setEditingStudentId(student.id); 
+                 if (studentIdInputRef.current) { studentIdInputRef.current.focus(); }
+            };
+
+            const handleDeleteStudent = (studentToDelete) => {
+                Swal.fire({ title: 'ยืนยันการลบ', text: `คุณต้องการลบนักเรียน ${studentToDelete.name} (เลขที่ ${studentToDelete.studentIdNo}, ชั้น ${getFullClassName(studentToDelete.classLevel)}) ใช่หรือไม่? ข้อมูลนี้จะถูกลบออกจากระบบและ Google Sheet`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ใช่, ลบเลย!', cancelButtonText: 'ยกเลิก'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({ title: 'กำลังลบข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        try {
+                            const response = await jsonpRequest({ action: 'deleteStudent', studentIdNo: studentToDelete.studentIdNo, classLevel: studentToDelete.classLevel });
+                            if (response.success) { Swal.fire('สำเร็จ!', 'ลบนักเรียนเรียบร้อยแล้ว', 'success'); fetchStudentsFromSheet(); } 
+                            else { Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถลบข้อมูลนักเรียนได้', 'error'); }
+                        } catch (error) { Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะลบ', 'error'); }
+                    }
+                });
+            };
+
+            const resetForm = () => {
+                setFormStudentIdNo(''); setFormName(''); setFormClassLevel(classLevelsFull[0].abbr); setEditingStudentId(null);
+                if (studentIdInputRef.current) { studentIdInputRef.current.focus(); }
+            };
+            
+            const studentsToDisplay = students.filter(student => student.classLevel === filterManageClass);
+            const sortedStudents = [...studentsToDisplay].sort((a, b) => {
+                const classA = a.classLevel || ""; const classB = b.classLevel || "";
+                const classCompare = classLevelsFull.findIndex(l => l.abbr === classA) - classLevelsFull.findIndex(l => l.abbr === classB);
+                if (classCompare !== 0) return classCompare;
+                const idNoA_raw = a.studentIdNo; const idNoB_raw = b.studentIdNo;
+                const idNoA_int = parseInt(idNoA_raw, 10); const idNoB_int = parseInt(idNoB_raw, 10);
+                if (!isNaN(idNoA_int) && !isNaN(idNoB_int)) { return idNoA_int - idNoB_int; }
+                const idNoA_str = String(idNoA_raw || ""); const idNoB_str = String(idNoB_raw || "");
+                return idNoA_str.localeCompare(idNoB_str);
+            });
+
+            return (
+                <div className="main-card">
+                    <h2 className="text-3xl font-semibold mb-6 text-orange-600">จัดการรายชื่อนักเรียน</h2>
+                    <div className={`my-8 p-6 border rounded-lg ${editingStudentId ? 'editing-form' : 'border-orange-200 bg-orange-50/30'}`}>
+                        <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-semibold text-orange-700">{editingStudentId ? 'แก้ไขข้อมูลนักเรียน' : 'เพิ่มนักเรียนใหม่ (ทีละคน)'}</h3>{editingStudentId && <span className="text-sm text-red-600 font-semibold">กำลังแก้ไขข้อมูล...</span>}</div>
+                        <div className="grid md:grid-cols-3 gap-6 mb-4">
+                            <div><label className="block text-sm font-medium text-gray-700 mb-1">เลขที่:</label><input type="text" ref={studentIdInputRef} value={formStudentIdNo} onChange={e => setFormStudentIdNo(e.target.value)} className="w-full" /></div>
+                            <div><label className="block text-sm font-medium text-gray-700 mb-1">ชื่อ-สกุล:</label><input type="text" value={formName} onChange={e => setFormName(e.target.value)} className="w-full" /></div>
+                            <div><label className="block text-sm font-medium text-gray-700 mb-1">ชั้นเรียน:</label><select value={formClassLevel} onChange={e => setFormClassLevel(e.target.value)} className="w-full">{classLevelsFull.map(level => <option key={level.abbr} value={level.abbr}>{level.full}</option>)}</select></div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={handleAddStudent} className="btn-primary" disabled={isLoading}><i className={`fas ${editingStudentId ? 'fa-edit' : 'fa-plus'} mr-2`}></i>{editingStudentId ? 'บันทึกการแก้ไข' : 'เพิ่มนักเรียน'}</button>
+                            {editingStudentId && (<button onClick={resetForm} className="btn-secondary" disabled={isLoading}>ยกเลิกการแก้ไข</button>)}
+                        </div>
+                    </div>
+                    <div className="my-8 p-6 border border-orange-200 rounded-lg bg-orange-50/30">
+                        <h3 className="text-xl font-semibold text-orange-700 mb-3">เพิ่มนักเรียนหลายคนพร้อมกัน</h3>
+                        <p className="text-sm text-gray-600 mb-2">ป้อนข้อมูลนักเรียนทีละบรรทัด รูปแบบ: เลขที่,ชื่อ-สกุล,ชั้นเรียน (เช่น 1,เด็กชายสมชาย ใจดี,อ.1 หรือ 1,เด็กชายสมชาย ใจดี,อนุบาล 1)</p>
+                        <textarea rows="5" className="w-full mb-3" placeholder="1,เด็กชาย ก,อ.1&#10;2,เด็กหญิง ข,อ.1&#10;1,เด็กชาย ค,ป.2" value={multiAddText} onChange={e => setMultiAddText(e.target.value)}></textarea>
+                        <button onClick={handleMultiAddStudents} className="btn-primary" disabled={isLoading}><i className="fas fa-users-medical mr-2"></i>เพิ่มนักเรียนจากรายการ</button>
+                    </div>
+                    <div className="my-8">
+                        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                            <h3 className="text-xl font-semibold text-orange-600">รายชื่อนักเรียนในระบบ</h3>
+                            <div className="flex items-center gap-4"><select value={filterManageClass} onChange={e => setFilterManageClass(e.target.value)} className="p-2 border border-[#FFCC80] rounded-md">{classLevelsFull.map(level => <option key={level.abbr} value={level.abbr}>{level.full}</option>)}</select><button onClick={fetchStudentsFromSheet} className="btn-secondary" disabled={isLoading}><i className="fas fa-sync-alt mr-2"></i>โหลดข้อมูลล่าสุด</button></div>
+                        </div>
+                        {isLoading && <p className="text-center py-4 text-orange-600">กำลังโหลดข้อมูล...</p>}
+                        {!isLoading && studentsToDisplay.length === 0 && (<p className="text-center py-4 text-gray-500 bg-amber-50 p-3 rounded-md">ไม่พบข้อมูลนักเรียนสำหรับห้อง {getFullClassName(filterManageClass)}</p>)}
+                        {!isLoading && studentsToDisplay.length > 0 && (
+                            <div className="overflow-x-auto shadow-md rounded-lg">
+                                <table className="min-w-full divide-y divide-orange-200 table-hover">
+                                    <thead className="bg-orange-100"><tr><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">เลขที่</th><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ชื่อ-สกุล</th><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ชั้นเรียน</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">จัดการ</th></tr></thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">{
+                                        sortedStudents.map(student => (
+                                            <tr key={student.id} className="hover:bg-orange-50 transition-colors duration-150"><td className="px-6 py-4 text-gray-700">{student.studentIdNo}</td><td className="px-6 py-4 text-gray-800 font-medium">{student.name}</td><td className="px-6 py-4 text-gray-700">{getFullClassName(student.classLevel)}</td>
+                                                <td className="px-6 py-4 text-center space-x-2"><button onClick={() => handleEditStudent(student)} className="text-blue-600 hover:text-blue-800 p-1" title="แก้ไข"><i className="fas fa-edit"></i></button><button onClick={() => handleDeleteStudent(student)} className="text-red-600 hover:text-red-800 p-1" title="ลบ"><i className="fas fa-trash-alt"></i></button></td>
+                                            </tr>))
+                                    }</tbody>
+                                </table>
+                            </div>)}
+                    </div>
+                    <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <button onClick={() => saveAllStudentsToSheet(students)} className="btn-primary w-full sm:w-auto" disabled={isLoading}><i className="fas fa-cloud-upload-alt mr-2"></i>บันทึกข้อมูลทั้งหมดลง Sheet</button>
+                        <button onClick={openGoogleSheet} className="btn-secondary w-full sm:w-auto"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button>
+                    </div>
+                </div>);
+        };
+
+        // --- Manage Teachers Page ---
+        const ManageTeachersPage = ({ classLevelsFull, setClassLevelsFull, getFullClassName, isLoading, setIsLoading, jsonpRequest, fetchClassLevelsFullData }) => {
+            const [localClassLevels, setLocalClassLevels] = React.useState(JSON.parse(JSON.stringify(classLevelsFull))); 
+            const [newTeacherInputs, setNewTeacherInputs] = React.useState(classLevelsFull.reduce((acc, curr) => { acc[curr.abbr] = ""; return acc; }, {}));
+            const [editingTeacherInfo, setEditingTeacherInfo] = React.useState({ classAbbr: null, teacherIndex: null, currentEditText: '' });
+
+            const handleTeacherNameInputChange = (classAbbr, teacherIndex, newName) => {
+                setEditingTeacherInfo(prev => ({ ...prev, currentEditText: newName }));
+            };
+            
+            const startEditTeacher = (classAbbr, teacherIndex, currentName) => {
+                setEditingTeacherInfo({ classAbbr, teacherIndex, currentEditText: currentName });
+            };
+
+            const cancelEditTeacher = () => {
+                setEditingTeacherInfo({ classAbbr: null, teacherIndex: null, currentEditText: '' });
+            };
+
+            const saveTeacherEdit = (classAbbr, teacherIndex) => {
+                const updatedName = editingTeacherInfo.currentEditText.trim();
+                if (!updatedName) {
+                    Swal.fire('ข้อมูลไม่ครบถ้วน', 'ชื่อครูไม่สามารถเว้นว่างได้', 'warning');
+                    return;
+                }
+                setLocalClassLevels(prevLevels => 
+                    prevLevels.map(level => 
+                        level.abbr === classAbbr ? { 
+                            ...level, 
+                            teacher: level.teacher.map((tName, idx) => idx === teacherIndex ? updatedName : tName) 
+                        } : level
+                    )
+                );
+                cancelEditTeacher(); 
+            };
+            
+            const handleAddNewTeacherInputChange = (classAbbr, value) => {
+                setNewTeacherInputs(prev => ({...prev, [classAbbr]: value}));
+            };
+
+            const handleAddTeacherToClass = (classAbbr) => {
+                const newTeacherName = newTeacherInputs[classAbbr]?.trim();
+                if (!newTeacherName) {
+                    Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาป้อนชื่อครูที่ต้องการเพิ่ม', 'warning');
+                    return;
+                }
+                setLocalClassLevels(prevLevels => 
+                    prevLevels.map(level => 
+                        level.abbr === classAbbr ? { 
+                            ...level, 
+                            teacher: [...(level.teacher || []), newTeacherName] 
+                        } : level
+                    )
+                );
+                setNewTeacherInputs(prev => ({...prev, [classAbbr]: ""})); 
+            };
+            
+            const handleRemoveTeacherFromClass = (classAbbr, teacherIndexToRemove) => {
+                 setLocalClassLevels(prevLevels => 
+                    prevLevels.map(level => 
+                        level.abbr === classAbbr ? { 
+                            ...level, 
+                            teacher: (level.teacher || []).filter((_, idx) => idx !== teacherIndexToRemove)
+                        } : level
+                    )
+                );
+            };
+
+            const handleSaveChangesToSheet = async () => {
+                if (typeof setIsLoading === 'function') setIsLoading(true); else console.error("setIsLoading is not a function in ManageTeachersPage");
+                Swal.fire({ title: 'กำลังบันทึกข้อมูลครู...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const response = await jsonpRequest({ 
+                        action: 'saveAllClassTeachers', 
+                        classLevelsData: JSON.stringify(localClassLevels) 
+                    });
+
+                    if (response.success) {
+                        Swal.fire('สำเร็จ!', 'บันทึกข้อมูลครูประจำชั้นลง Google Sheet เรียบร้อยแล้ว', 'success');
+                        if (typeof fetchClassLevelsFullData === 'function') fetchClassLevelsFullData(); 
+                    } else {
+                        Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถบันทึกข้อมูลครูลง Google Sheet ได้', 'error');
+                    }
+                } catch (error) {
+                    console.error("Error saving teachers to Sheet:", error);
+                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะบันทึกข้อมูลครู', 'error');
+                } finally {
+                    if (typeof setIsLoading === 'function') setIsLoading(false); 
+                }
+            };
+            
+            React.useEffect(() => {
+                setLocalClassLevels(JSON.parse(JSON.stringify(classLevelsFull.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })))));
+            }, [classLevelsFull]);
+
+
+            return (
+                <div className="main-card">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-semibold text-orange-600">จัดการรายชื่อครูประจำชั้น</h2>
+                        <button onClick={fetchClassLevelsFullData} className="btn-secondary" disabled={isLoading}>
+                            <i className="fas fa-sync-alt mr-2"></i>โหลดข้อมูลจาก Google Sheet
+                        </button>
+                    </div>
+                    <div className="space-y-6">
+                        {localClassLevels.map(level => (
+                            <div key={level.abbr} className="p-4 border border-orange-200 rounded-lg shadow-sm bg-orange-50/30">
+                                <h3 className="text-xl font-semibold text-orange-700 mb-3">{level.full} ({level.abbr})</h3>
+                                {(level.teacher || []).map((teacherName, index) => (
+                                    <div key={index} className="flex items-center gap-2 mb-2">
+                                        {editingTeacherInfo.classAbbr === level.abbr && editingTeacherInfo.teacherIndex === index ? (
+                                            <>
+                                                <input 
+                                                    type="text"
+                                                    value={editingTeacherInfo.currentEditText}
+                                                    onChange={(e) => handleTeacherNameInputChange(level.abbr, index, e.target.value)}
+                                                    className="w-full p-2 border border-orange-400 rounded-md"
+                                                />
+                                                <button onClick={() => saveTeacherEdit(level.abbr, index)} className="btn-success text-xs p-2"><i className="fas fa-check"></i></button>
+                                                <button onClick={cancelEditTeacher} className="btn-secondary text-xs p-2"><i className="fas fa-times"></i></button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="flex-grow p-2 text-gray-800">{teacherName}</span>
+                                                <button onClick={() => startEditTeacher(level.abbr, index, teacherName)} className="text-blue-600 hover:text-blue-800 p-2" title="แก้ไขชื่อครู"><i className="fas fa-edit"></i></button>
+                                                <button onClick={() => handleRemoveTeacherFromClass(level.abbr, index)} className="btn-danger text-xs" title="ลบครูคนนี้"><i className="fas fa-trash-alt"></i></button>
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
+                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-orange-200">
+                                     <input 
+                                        type="text"
+                                        value={newTeacherInputs[level.abbr] || ""}
+                                        onChange={(e) => handleAddNewTeacherInputChange(level.abbr, e.target.value)}
+                                        className="w-full p-2 border border-[#FFCC80] rounded-md"
+                                        placeholder="เพิ่มชื่อครูใหม่"
+                                    />
+                                    <button 
+                                        onClick={() => handleAddTeacherToClass(level.abbr)}
+                                        className="btn-secondary text-sm py-2 px-3 whitespace-nowrap"
+                                    >
+                                        <i className="fas fa-plus mr-1"></i>เพิ่มครู
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-8 flex justify-center">
+                        <button 
+                            onClick={handleSaveChangesToSheet} 
+                            className="btn-primary text-lg py-3 px-6"
+                            disabled={isLoading}
+                        >
+                            <i className="fas fa-cloud-upload-alt mr-2"></i>บันทึกข้อมูลครูทั้งหมดลง Google Sheet
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+
+        // --- Print Individual Stats Page ---
+        const PrintIndividualStatsPage = ({ stats, startDate, endDate, selectedClassProp, onClose, classLevelsFull, getFullClassName, getTeacherName }) => {
+            const schoolName = "โรงเรียนวัดชัยชนะสงคราม(วัดตึก)";
+            const reportTitle = "รายงานสถิติการมาเรียนรายบุคคล";
+            const generationDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            const sortedStats = stats ? [...stats].sort((a,b) => {
+                const idNoA_raw = a.studentIdNo; const idNoB_raw = b.studentIdNo;
+                const idNoA_int = parseInt(idNoA_raw, 10); const idNoB_int = parseInt(idNoB_raw, 10);
+                if (!isNaN(idNoA_int) && !isNaN(idNoB_int)) { return idNoA_int - idNoB_int; }
+                const idNoA_str = String(idNoA_raw || ""); const idNoB_str = String(idNoB_raw || "");
+                return idNoA_str.localeCompare(idNoB_str);
+            }) : [];
+
+            return (
+                <div className="print-container bg-white p-8">
+                    <div className="text-center mb-6">
+                        <h1 className="text-2xl font-bold">{schoolName}</h1>
+                        <h2 className="text-xl font-semibold">{reportTitle}</h2>
+                        <p className="text-md">ห้องเรียน: {getFullClassName(selectedClassProp)} (ครูประจำชั้น: {getTeacherName(selectedClassProp)})</p>
+                        <p className="text-md">ช่วงวันที่: {new Date(startDate).toLocaleDateString('th-TH')} - {new Date(endDate).toLocaleDateString('th-TH')}</p>
+                        <p className="text-sm text-gray-500 mt-1">สร้างเมื่อ: {generationDate}</p>
+                    </div>
+
+                    {sortedStats.length > 0 ? (
+                        <table className="min-w-full divide-y divide-gray-300 border border-gray-300">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 border">เลขที่</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 border">ชื่อ-สกุล</th>
+                                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border">วันมาเรียน</th>
+                                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border">วันลา</th>
+                                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border">วันขาด</th>
+                                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border">% การมา</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {sortedStats.map(student => (
+                                    <tr key={student.id}>
+                                        <td className="px-4 py-2 border">{student.studentIdNo}</td>
+                                        <td className="px-4 py-2 border">{student.name}</td>
+                                        <td className="px-4 py-2 text-center border">{student.presentCount}</td>
+                                        <td className="px-4 py-2 text-center border">{student.leaveCount}</td>
+                                        <td className="px-4 py-2 text-center border">{student.absentCount}</td>
+                                        <td className="px-4 py-2 text-center border">{student.percentage}%</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="text-center text-gray-500">ไม่พบข้อมูลสถิติสำหรับเงื่อนไขที่เลือก</p>
+                    )}
+                    <div className="mt-8 flex justify-center gap-4 no-print">
+                        <button onClick={() => window.print()} className="btn-primary"><i className="fas fa-print mr-2"></i>พิมพ์รายงาน</button>
+                        <button onClick={onClose} className="btn-secondary"><i className="fas fa-times mr-2"></i>ปิด</button>
+                    </div>
+                </div>
+            );
+        };
+
+
+        const root = ReactDOM.createRoot(document.getElementById('root')); 
+        root.render(<App />);
+    </script>
+</body>
+</html>
