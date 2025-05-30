@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -763,24 +763,49 @@
                     if (response.success && Array.isArray(response.data)) {
                         const recordsForSelectedDate = response.data;
                         const calculatedClassStats = {};
+                        let grandTotalStudents = 0;
+                        let grandTotalPresent = 0;
+                        let grandTotalLeave = 0;
+                        let grandTotalAbsent = 0;
+                        let grandTotalChecked = 0;
+
                         classLevelsFull.forEach(levelObj => { 
                             const level = levelObj.abbr; 
                             const studentsInThisClass = students.filter(s => s.classLevel === level);
-                            if (studentsInThisClass.length === 0) {
-                                calculatedClassStats[level] = { presentRate: 0, totalStudents: 0, totalPresent: 0, totalAbsent: 0, totalLeave: 0, totalCheckedSessions:0, teacher: getTeacherName(level) };
-                                return;
-                            }
+                            
                             let totalPresentForClass = 0, totalAbsentForClass = 0, totalLeaveForClass = 0, totalCheckedSessionsForClass = 0;
-                            studentsInThisClass.forEach(student => {
-                                const studentRecords = recordsForSelectedDate.filter(r => r.studentId === student.studentIdNo && r.classLevel === level);
-                                totalPresentForClass += studentRecords.filter(r => r.status === 'มา').length;
-                                totalAbsentForClass += studentRecords.filter(r => r.status === 'ขาด').length;
-                                totalLeaveForClass += studentRecords.filter(r => r.status === 'ลา').length;
-                                totalCheckedSessionsForClass += studentRecords.length; 
-                            });
+                            
+                            if (studentsInThisClass.length > 0) {
+                                studentsInThisClass.forEach(student => {
+                                    const studentRecords = recordsForSelectedDate.filter(r => r.studentId === student.studentIdNo && r.classLevel === level);
+                                    totalPresentForClass += studentRecords.filter(r => r.status === 'มา').length;
+                                    totalAbsentForClass += studentRecords.filter(r => r.status === 'ขาด').length;
+                                    totalLeaveForClass += studentRecords.filter(r => r.status === 'ลา').length;
+                                    totalCheckedSessionsForClass += studentRecords.length; 
+                                });
+                            }
+                            
                             const presentRate = totalCheckedSessionsForClass > 0 ? Math.round((totalPresentForClass / totalCheckedSessionsForClass) * 100) : 0;
                             calculatedClassStats[level] = { presentRate, totalStudents: studentsInThisClass.length, totalPresent: totalPresentForClass, totalAbsent: totalAbsentForClass, totalLeave: totalLeaveForClass, totalCheckedSessions: totalCheckedSessionsForClass, teacher: getTeacherName(level) };
+                            
+                            grandTotalStudents += studentsInThisClass.length;
+                            grandTotalPresent += totalPresentForClass;
+                            grandTotalLeave += totalLeaveForClass;
+                            grandTotalAbsent += totalAbsentForClass;
+                            grandTotalChecked += totalCheckedSessionsForClass;
                         });
+
+                        const grandTotalPresentRate = grandTotalChecked > 0 ? Math.round((grandTotalPresent / grandTotalChecked) * 100) : 0;
+                        calculatedClassStats['total'] = {
+                            totalStudents: grandTotalStudents,
+                            totalPresent: grandTotalPresent,
+                            totalLeave: grandTotalLeave,
+                            totalAbsent: grandTotalAbsent,
+                            totalCheckedSessions: grandTotalChecked,
+                            presentRate: grandTotalPresentRate,
+                            teacher: '-' // No specific teacher for grand total
+                        };
+
                         setClassAggStatsData(calculatedClassStats);
                         Swal.close();
                     } else {
@@ -817,7 +842,19 @@
                                             const classStat = classAggStatsData[levelObj.abbr]; 
                                             return classStat ? (<tr key={levelObj.abbr} className="hover:bg-orange-50 transition-colors duration-150"><td className="px-6 py-4 text-gray-800 font-medium">{levelObj.full}</td><td className="px-4 py-2 text-gray-700">{classStat.teacher}</td><td className="px-6 py-4 text-center text-gray-700">{classStat.totalStudents}</td><td className="px-6 py-4 text-center text-green-600 font-semibold">{classStat.totalPresent}</td><td className="px-6 py-4 text-center text-amber-600 font-semibold">{classStat.totalLeave}</td><td className="px-6 py-4 text-center text-red-600 font-semibold">{classStat.totalAbsent}</td><td className="px-6 py-4 text-center text-gray-700">{classStat.totalCheckedSessions}</td><td className="px-6 py-4 text-center text-gray-700 font-semibold">{classStat.presentRate}%</td></tr>) : null;
                                         })
-                                    }</tbody>
+                                    }
+                                    {classAggStatsData['total'] && (
+                                        <tr className="bg-orange-200 font-bold text-orange-800">
+                                            <td className="px-6 py-3 text-left" colSpan="2">สรุปผลรวมทุกระดับชั้น</td>
+                                            <td className="px-6 py-3 text-center">{classAggStatsData['total'].totalStudents}</td>
+                                            <td className="px-6 py-3 text-center">{classAggStatsData['total'].totalPresent}</td>
+                                            <td className="px-6 py-3 text-center">{classAggStatsData['total'].totalLeave}</td>
+                                            <td className="px-6 py-3 text-center">{classAggStatsData['total'].totalAbsent}</td>
+                                            <td className="px-6 py-3 text-center">{classAggStatsData['total'].totalCheckedSessions}</td>
+                                            <td className="px-6 py-3 text-center">{classAggStatsData['total'].presentRate}%</td>
+                                        </tr>
+                                    )}
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
