@@ -31,6 +31,33 @@
             font-weight: 700;
             background-color: #FFF3E0;
         }
+        /* Sub-tab styling */
+        .sub-tab-button {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid #FFD180;
+            border-bottom: none;
+            background-color: #FFF9F2;
+            color: #B08D57;
+            font-weight: 500;
+            border-radius: 6px 6px 0 0;
+            margin-right: 4px;
+            transition: all 0.3s ease;
+        }
+        .sub-tab-button:hover {
+            background-color: #FFF3E0;
+            color: #D97706;
+        }
+        .sub-tab-button.active {
+            background-color: #FFFFFF;
+            color: #D97706;
+            font-weight: 700;
+            border-bottom: 1px solid #FFFFFF; /* To make it look like it merges with content area */
+            position: relative;
+            top: 1px; /* To align with the content border */
+        }
+
+
         .btn-primary {
             background-color: #FFA726; /* Pastel Orange */
             color: white;
@@ -74,6 +101,20 @@
         }
         .btn-warning:hover {
             background-color: #D97706; /* Amber 600 */
+            transform: translateY(-1px);
+             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .btn-info {
+            background-color: #2196F3; /* Blue 500 */
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-weight: 500;
+        }
+        .btn-info:hover {
+            background-color: #1976D2; /* Blue 700 */
             transform: translateY(-1px);
              box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
@@ -166,14 +207,15 @@
     <script type="text/babel">
         const App = () => {
             const GAS_URL = "https://script.google.com/macros/s/AKfycbyfN18x74p5OTpZqKz8TnNsM-KujFk8EzBsCCFq1-yh3E1zCvdB5sRmHwYMJHtc8ogfEg/exec";
-            // console.log("Current GAS_URL used in this app:", GAS_URL); 
+            console.log("Current GAS_URL used in this app:", GAS_URL); 
 
             const [currentPage, setCurrentPage] = React.useState('attendance'); 
             const [students, setStudents] = React.useState([]); 
             const [attendanceRecords, setAttendanceRecords] = React.useState({}); 
             
             const [isLoading, setIsLoading] = React.useState(false); 
-            const [filterDate, setFilterDate] = React.useState(new Date().toISOString().slice(0,10));
+            const [filterDate, setFilterDate] = React.useState(new Date().toISOString().slice(0,10)); 
+            const [endDateFilter, setEndDateFilter] = React.useState(''); 
             
             const initialClassLevelsFullData = [ 
                 { abbr: 'อ.1', full: 'อนุบาล 1', teacher: ['ครูสมใจ ใจดี'] }, 
@@ -187,14 +229,9 @@
                 { abbr: 'ป.6', full: 'ประถมศึกษาปีที่ 6', teacher: ['ครูพัฒนา ชาติไทย'] }
             ];
 
-            const [classLevelsFull, setClassLevelsFull] = React.useState(() => {
-                const savedClassLevels = localStorage.getItem('classLevelsFull');
-                if (savedClassLevels) {
-                    const parsed = JSON.parse(savedClassLevels);
-                    return parsed.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) }));
-                }
-                return initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) }));
-            });
+            const [classLevelsFull, setClassLevelsFull] = React.useState(
+                 initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? String(cls.teacher).split(',').map(t => t.trim()).filter(t => t) : []) }))
+            );
             
             const [filterClass, setFilterClass] = React.useState(classLevelsFull.length > 0 ? classLevelsFull[0].abbr : ''); 
 
@@ -234,10 +271,11 @@
                         url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
                     }
                     url += `&timestamp=${new Date().getTime()}`; 
-                    // console.log("Requesting JSONP URL:", url); 
+                    console.log("Requesting JSONP URL:", url); 
                     script.src = url;
                     script.onerror = (errEvent) => { 
-                        // console.error("JSONP script.onerror event object:", JSON.stringify(errEvent, Object.getOwnPropertyNames(errEvent))); 
+                        console.error("JSONP script.onerror event object:", JSON.stringify(errEvent, Object.getOwnPropertyNames(errEvent))); 
+                        console.error("Failed JSONP URL was:", url); 
                         delete window[callbackName];
                         try { 
                            if (script.parentNode && document.body.contains(script)) { 
@@ -254,7 +292,7 @@
 
             const fetchClassLevelsFullData = async () => {
                 setIsLoading(true);
-                // console.log("Fetching class levels from GAS URL (inside fetchClassLevelsFullData):", GAS_URL); 
+                console.log("Fetching class levels from GAS URL (inside fetchClassLevelsFullData):", GAS_URL); 
                 try {
                     const response = await jsonpRequest({ action: 'getClassLevelsFull' });
                     if (response.success && Array.isArray(response.data) && response.data.length > 0) {
@@ -263,31 +301,15 @@
                             teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? String(cls.teacher).split(',').map(t => t.trim()).filter(t => t) : [])
                         }));
                         setClassLevelsFull(formattedData);
-                        localStorage.setItem('classLevelsFull', JSON.stringify(formattedData)); 
-                        // console.log("Class levels fetched and set from GAS:", formattedData);
-                         // Swal.fire('สำเร็จ!', 'โหลดข้อมูลครูประจำชั้นจาก Google Sheet เรียบร้อยแล้ว', 'success'); // Optional: can be too noisy
+                         // Swal.fire('สำเร็จ!', 'โหลดข้อมูลครูประจำชั้นจาก Google Sheet เรียบร้อยแล้ว', 'success');
                     } else {
-                        // console.warn("Failed to fetch class levels from GAS or data is empty, using initial/localStorage. Response:", response);
-                        const savedClassLevels = localStorage.getItem('classLevelsFull');
-                        if (savedClassLevels) {
-                            const parsed = JSON.parse(savedClassLevels);
-                            setClassLevelsFull(parsed.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
-                        } else {
-                            setClassLevelsFull(initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
-                            localStorage.setItem('classLevelsFull', JSON.stringify(initialClassLevelsFullData));
-                        }
-                         // Swal.fire('ไม่สำเร็จ', response.message || 'ไม่สามารถโหลดข้อมูลครูจาก Google Sheet ได้, แสดงข้อมูลที่บันทึกไว้ล่าสุด (ถ้ามี)', 'warning');
+                        console.warn("Failed to fetch class levels from GAS or data is empty, using initial data. Response:", response);
+                        setClassLevelsFull(initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? String(cls.teacher).split(',').map(t => t.trim()).filter(t => t) : []) })));
+                         // Swal.fire('ไม่สำเร็จ', response.message || 'ไม่สามารถโหลดข้อมูลครูจาก Google Sheet ได้, แสดงข้อมูลเริ่มต้น', 'warning');
                     }
                 } catch (error) {
-                    // console.error("Error in fetchClassLevelsFullData's jsonpRequest:", error);
-                     const savedClassLevels = localStorage.getItem('classLevelsFull');
-                        if (savedClassLevels) {
-                            const parsed = JSON.parse(savedClassLevels);
-                            setClassLevelsFull(parsed.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
-                        } else {
-                            setClassLevelsFull(initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })));
-                            localStorage.setItem('classLevelsFull', JSON.stringify(initialClassLevelsFullData));
-                        }
+                    console.error("Error in fetchClassLevelsFullData's jsonpRequest:", error);
+                    setClassLevelsFull(initialClassLevelsFullData.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? String(cls.teacher).split(',').map(t => t.trim()).filter(t => t) : []) })));
                     // Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะโหลดข้อมูลครู', 'error');
                 } finally {
                     setIsLoading(false);
@@ -344,57 +366,127 @@
             
             const fetchAttendanceFromSheet = async (date, classLevel) => {
                 if (!date || !classLevel) {
-                    Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่และชั้นเรียน', 'warning');
                     return;
                 }
                 setIsLoading(true);
-                Swal.fire({ title: 'กำลังโหลดข้อมูลการเช็คชื่อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 try {
                     const response = await jsonpRequest({ action: 'getAttendance', date: date, classLevel: classLevel });
                     if (response.success && Array.isArray(response.data)) {
                         const key = `${date}_${classLevel}`;
-                        setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: response.data }));
-                        Swal.fire('สำเร็จ!', 'โหลดข้อมูลการเช็คชื่อเรียบร้อยแล้ว', 'success');
+                        const transformedRecords = response.data.map(item => ({
+                            studentId: item.studentId, 
+                            studentName: item.studentName, 
+                            status: item.status
+                        }));
+                        setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: transformedRecords }));
                     } else {
-                        Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถโหลดข้อมูลการเช็คชื่อได้', 'error');
                          const key = `${date}_${classLevel}`;
                          setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: [] })); 
+                         console.warn(`Could not fetch attendance for ${date} - ${classLevel}: ${response.message || 'No data'}`);
                     }
                 } catch (error) {
-                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลว', 'error');
+                    console.error("Error fetching attendance for single day:", date, classLevel, error);
+                    const key = `${date}_${classLevel}`;
+                    setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: [] }));
                 } finally {
                     setIsLoading(false);
                 }
             };
 
-            const saveAttendanceToSheet = async (date, classLevel, currentClassAttendance) => {
-                if (!date || !classLevel || !currentClassAttendance || currentClassAttendance.length === 0) {
-                     Swal.fire('ข้อมูลไม่ครบถ้วน', 'ไม่พบข้อมูลการเช็คชื่อสำหรับบันทึก', 'warning');
+            const saveAttendanceToSheet = async (startDate, endDate, classLevel, studentsInClass, localAttendanceRecords) => {
+                if (!startDate || !classLevel || studentsInClass.length === 0 ) {
+                     Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่, ชั้นเรียน และมีนักเรียนในชั้น', 'warning');
                     return;
                 }
                 setIsLoading(true);
                 Swal.fire({ title: 'กำลังบันทึกข้อมูลการเช็คชื่อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                try {
-                    const response = await jsonpRequest({ 
-                        action: 'saveAttendance', 
-                        attendanceData: JSON.stringify({ date, classLevel, records: currentClassAttendance })
-                    });
-                    if (response.success) {
-                        Swal.fire('สำเร็จ!', 'บันทึกข้อมูลการเช็คชื่อเรียบร้อยแล้ว', 'success');
-                        const key = `${date}_${classLevel}`;
-                        setAttendanceRecords(prevRecords => ({ ...prevRecords, [key]: currentClassAttendance }));
-                    } else {
-                        Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
-                    }
-                } catch (error) {
-                    Swal.fire('ผิดพลาด!', 'การเชื่อมต่อกับ Google Sheet ล้มเหลวขณะบันทึก', 'error');
-                } finally {
-                    setIsLoading(false);
+                
+                const finalEndDate = endDate && endDate >= startDate ? endDate : startDate;
+                let currentDateObj = new Date(startDate + 'T00:00:00Z'); 
+                const stopDateObj = new Date(finalEndDate + 'T00:00:00Z');
+                
+                let promises = [];
+                let totalDaysToProcess = 0;
+                const processedDatesForPayload = []; 
+
+                for (let d = new Date(currentDateObj); d <= stopDateObj; d.setDate(d.getDate() + 1)) {
+                    totalDaysToProcess++;
+                    const dateString = d.toISOString().slice(0, 10);
+                    const attendanceKeyForDay = `${dateString}_${classLevel}`;
+                    const recordsForDay = localAttendanceRecords[attendanceKeyForDay] || studentsInClass.map(s => ({ studentId: s.studentIdNo, studentName: s.name, status: '' }));
+                    
+                    const recordsToSave = recordsForDay
+                        .filter(r => r.status !== '')
+                        .map(r => ({ 
+                            studentId: r.studentId,
+                            studentName: r.studentName,
+                            status: r.status
+                        })); 
+                    
+                    const dailyPayload = { date: dateString, classLevel, records: recordsToSave };
+                    processedDatesForPayload.push(dateString); 
+
+                    promises.push(
+                        jsonpRequest({ 
+                            action: 'saveAttendance', 
+                            attendanceData: JSON.stringify(dailyPayload) 
+                        }).then(response => ({ 
+                            ...response,
+                            processedDate: dateString 
+                        }))
+                        .catch(err => ({ 
+                            processedDate: dateString, 
+                            success: false, 
+                            message: err.message || "การเชื่อมต่อล้มเหลว" 
+                        }))
+                    );
                 }
+                
+                if (promises.length > 0) {
+                    try {
+                        const results = await Promise.allSettled(promises);
+                        let allSavesSuccessful = true;
+                        let errorMessages = [];
+                        let savedCount = 0;
+
+                        results.forEach((resultItem, index) => {
+                            const dateForThisResult = processedDatesForPayload[index] || 'ไม่ทราบวันที่'; 
+
+                            if (resultItem.status === 'fulfilled' && resultItem.value.success) {
+                                savedCount++;
+                            } else {
+                                allSavesSuccessful = false;
+                                const errorMessage = resultItem.status === 'fulfilled' ? 
+                                                     (resultItem.value.message || 'ไม่สามารถบันทึกได้') : 
+                                                     (resultItem.reason && resultItem.reason.message ? resultItem.reason.message : 'การเชื่อมต่อล้มเหลว (ไม่ทราบสาเหตุ)');
+                                errorMessages.push(`วันที่ ${dateForThisResult}: ${errorMessage}`);
+                            }
+                        });
+
+                        if (allSavesSuccessful) {
+                            Swal.fire('สำเร็จ!', `บันทึกข้อมูลการเช็คชื่อสำหรับ ${savedCount} วัน เรียบร้อยแล้ว`, 'success');
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'การบันทึกมีปัญหาบางส่วน',
+                                html: `บันทึกสำเร็จ ${savedCount} จาก ${totalDaysToProcess} วัน<br/>${errorMessages.length > 0 ? 'ข้อผิดพลาด: <br/>' + errorMessages.join('<br/>') : ''}`
+                            });
+                        }
+                        fetchAttendanceFromSheet(filterDate, filterClass); 
+                        
+                    } catch (error) { 
+                        console.error("Error processing save attendance promises:", error);
+                        Swal.fire('ผิดพลาดรุนแรง!', 'เกิดข้อผิดพลาดในการประมวลผลการบันทึก: ' + error.message, 'error');
+                    }
+                } else {
+                     Swal.fire('ไม่มีข้อมูลให้บันทึก', 'ไม่พบการเปลี่ยนแปลงสถานะการเช็คชื่อในช่วงวันที่ที่เลือก', 'info');
+                }
+                setIsLoading(false);
             };
 
+
             React.useEffect(() => {
-                if (students.length === 0 && (currentPage === 'manageStudents' || currentPage === 'statistics' || currentPage === 'attendance' || currentPage === 'classStatistics' || currentPage === 'manageTeachers')) {
+                if (students.length === 0 && (currentPage === 'manageData' || currentPage === 'statistics' || currentPage === 'attendance' || currentPage === 'classStatistics')) {
                      fetchStudentsFromSheet(); 
                 }
             }, [currentPage, students.length]);
@@ -439,8 +531,10 @@
                         fetchClassLevelsFullData={fetchClassLevelsFullData} 
                         getFullClassName={getFullClassName} 
                         getTeacherName={getTeacherName}
-                        filterDate={filterDate}
+                        filterDate={filterDate} 
                         setFilterDate={setFilterDate}
+                        endDateFilter={endDateFilter} 
+                        setEndDateFilter={setEndDateFilter}
                         filterClass={filterClass}
                         setFilterClass={setFilterClass}
                         fetchStudentsFromSheet={fetchStudentsFromSheet}
@@ -458,7 +552,6 @@
 
         const Header = () => (
             <header className="text-center mb-8 pb-6 border-b-4 border-orange-200">
-                {/* Logo removed from here */}
                 <div>
                     <h1 className="text-5xl font-bold text-orange-700 tracking-tight" style={{ textShadow: '2px 2px 4px rgba(239, 108, 0, 0.2)' }}>
                         ระบบเช็คชื่อนักเรียนออนไลน์
@@ -488,14 +581,9 @@
                     <i className="fas fa-chart-pie mr-2"></i>สถิติรวมชั้นเรียน
                 </button>
                 <button 
-                    className={`tab-button ${currentPage === 'manageStudents' ? 'active' : ''}`}
-                    onClick={() => setCurrentPage('manageStudents')}>
-                    <i className="fas fa-users-cog mr-2"></i>จัดการรายชื่อนักเรียน
-                </button>
-                 <button 
-                    className={`tab-button ${currentPage === 'manageTeachers' ? 'active' : ''}`}
-                    onClick={() => setCurrentPage('manageTeachers')}>
-                    <i className="fas fa-chalkboard-teacher mr-2"></i>จัดการรายชื่อครู
+                    className={`tab-button ${currentPage === 'manageData' ? 'active' : ''}`}
+                    onClick={() => setCurrentPage('manageData')}>
+                    <i className="fas fa-database mr-2"></i>จัดการข้อมูลหลัก
                 </button>
             </nav>
         );
@@ -508,10 +596,8 @@
                     return <StatisticsPage {...props} />;
                 case 'classStatistics':
                     return <ClassStatisticsPage {...props} />;
-                case 'manageStudents':
-                    return <StudentManagementPage {...props} />;
-                case 'manageTeachers':
-                    return <ManageTeachersPage {...props} />;
+                case 'manageData':
+                    return <MasterDataManagementPage {...props} />;
                 default:
                     return <AttendancePage {...props} />;
             }
@@ -520,29 +606,59 @@
         // --- Attendance Page ---
         const AttendancePage = ({ 
             students, attendanceRecords, setAttendanceRecords, isLoading, classLevelsFull, getFullClassName, getTeacherName,
-            filterDate, setFilterDate, filterClass, setFilterClass, 
+            filterDate, setFilterDate, endDateFilter, setEndDateFilter, 
+            filterClass, setFilterClass, 
             fetchAttendanceFromSheet, saveAttendanceToSheet, openGoogleSheet 
         }) => {
-            const attendanceKey = `${filterDate}_${filterClass}`;
-            const currentClassAttendance = attendanceRecords[attendanceKey] || [];
+            const displayAttendanceKey = `${filterDate}_${filterClass}`; 
+            const displayClassAttendance = attendanceRecords[displayAttendanceKey] || [];
             const studentsInClass = students.filter(s => s.classLevel === filterClass);
 
             React.useEffect(() => {
-                if (studentsInClass.length > 0 && (!attendanceRecords[attendanceKey] || attendanceRecords[attendanceKey].length !== studentsInClass.length)) {
-                    const initialAttendance = studentsInClass.map(student => {
-                        const existingRecord = attendanceRecords[attendanceKey]?.find(ar => ar.studentId === student.studentIdNo);
-                        return existingRecord || { studentId: student.studentIdNo, studentName: student.name, status: '' }; 
-                    });
-                     setAttendanceRecords(prev => ({ ...prev, [attendanceKey]: initialAttendance }));
+                if (filterDate && filterClass) {
+                    fetchAttendanceFromSheet(filterDate, filterClass);
                 }
-            }, [filterDate, filterClass, students, studentsInClass.length]); 
+            }, [filterDate, filterClass]); 
 
             const handleStatusChange = (studentId, newStatus) => {
                 setAttendanceRecords(prevRecords => {
-                    const updatedClassAttendance = (prevRecords[attendanceKey] || studentsInClass.map(s => ({studentId: s.studentIdNo, studentName: s.name, status: ''}))).map(record =>
-                        record.studentId === studentId ? { ...record, status: newStatus } : record
-                    );
-                    return { ...prevRecords, [attendanceKey]: updatedClassAttendance };
+                    const newRecords = {...prevRecords};
+                    const startDateObj = new Date(filterDate + 'T00:00:00Z'); 
+                    const currentEndDateObj = endDateFilter && endDateFilter >= filterDate 
+                                       ? new Date(endDateFilter + 'T00:00:00Z') 
+                                       : new Date(startDateObj);
+
+                    for (let d = new Date(startDateObj); d <= currentEndDateObj; d.setDate(d.getDate() + 1)) {
+                        const dateString = d.toISOString().slice(0,10);
+                        const keyForDay = `${dateString}_${filterClass}`;
+                        
+                        let dayAttendance = newRecords[keyForDay] ? [...newRecords[keyForDay]] : studentsInClass.map(s => ({studentId: s.studentIdNo, studentName: s.name, status: ''}));
+                        
+                        let studentFoundInDay = false;
+                        dayAttendance = dayAttendance.map(record => {
+                            if (record.studentId === studentId) {
+                                studentFoundInDay = true;
+                                return { 
+                                    studentId: record.studentId, 
+                                    studentName: record.studentName, 
+                                    status: newStatus 
+                                };
+                            }
+                            return {
+                                studentId: record.studentId,
+                                studentName: record.studentName,
+                                status: record.status
+                            };
+                        });
+                        if(!studentFoundInDay && studentsInClass.find(s=>s.studentIdNo === studentId)){ 
+                            const studentDetails = studentsInClass.find(s=>s.studentIdNo === studentId);
+                             if(studentDetails){ 
+                                dayAttendance.push({studentId: studentDetails.studentIdNo, studentName: studentDetails.name, status: newStatus});
+                             }
+                        }
+                        newRecords[keyForDay] = dayAttendance;
+                    }
+                    return newRecords;
                 });
             };
             const getStatusColor = (status) => {
@@ -552,58 +668,86 @@
                 return 'status-default';
             };
 
-            const handleResetAttendance = () => {
-                if (studentsInClass.length === 0) {
-                    Swal.fire('ไม่มีนักเรียน', 'ไม่พบรายชื่อนักเรียนในชั้นเรียนนี้เพื่อรีเซ็ต', 'info');
+            const handleBulkAction = (statusToSet) => { 
+                 if (studentsInClass.length === 0) {
+                    Swal.fire('ไม่มีนักเรียน', 'ไม่พบรายชื่อนักเรียนในชั้นเรียนนี้', 'info');
                     return;
                 }
+                const actionText = statusToSet === 'มา' ? 'เช็คชื่อ "มาทั้งหมด"' : 'รีเซ็ตสถานะ';
+                const confirmButtonText = statusToSet === 'มา' ? 'ใช่, มาทั้งหมด!' : 'ใช่, รีเซ็ตเลย!';
+                const confirmButtonColor = statusToSet === 'มา' ? '#4CAF50' : '#FFA726';
+                const dateRangeText = endDateFilter && endDateFilter > filterDate 
+                                    ? `สำหรับช่วงวันที่ ${new Date(filterDate).toLocaleDateString('th-TH')} ถึง ${new Date(endDateFilter).toLocaleDateString('th-TH')}` 
+                                    : `สำหรับวันที่ ${new Date(filterDate).toLocaleDateString('th-TH')}`;
+
                 Swal.fire({
-                    title: 'ยืนยันการรีเซ็ต',
-                    text: `คุณต้องการรีเซ็ตสถานะการเช็คชื่อของนักเรียนทั้งหมดในห้อง ${getFullClassName(filterClass)} สำหรับวันที่ ${new Date(filterDate).toLocaleDateString('th-TH')} หรือไม่? (การเปลี่ยนแปลงนี้จะมีผลในหน้าเว็บเท่านั้น ต้องกดบันทึกเพื่ออัปเดต Google Sheet)`,
-                    icon: 'warning',
+                    title: `ยืนยันการ${actionText}`,
+                    text: `คุณต้องการ${actionText}ให้นักเรียนทุกคนในห้อง ${getFullClassName(filterClass)} ${dateRangeText} หรือไม่? (การเปลี่ยนแปลงนี้จะมีผลในหน้าเว็บเท่านั้น ต้องกดบันทึกเพื่ออัปเดต Google Sheet)`,
+                    icon: statusToSet === 'มา' ? 'question' : 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#FFA726',
+                    confirmButtonColor: confirmButtonColor,
                     cancelButtonColor: '#757575',
-                    confirmButtonText: 'ใช่, รีเซ็ตเลย!',
+                    confirmButtonText: confirmButtonText,
                     cancelButtonText: 'ยกเลิก'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        const resetAttendance = studentsInClass.map(student => ({
-                            studentId: student.studentIdNo,
-                            studentName: student.name,
-                            status: '' // Reset to default/empty status
-                        }));
-                        setAttendanceRecords(prevRecords => ({
-                            ...prevRecords,
-                            [attendanceKey]: resetAttendance
-                        }));
-                        Swal.fire('รีเซ็ตแล้ว!', 'สถานะการเช็คชื่อถูกรีเซ็ตแล้ว กรุณากดบันทึกเพื่อยืนยันการเปลี่ยนแปลงลง Google Sheet', 'success');
+                        setAttendanceRecords(prevRecords => {
+                            const newRecords = {...prevRecords};
+                            const startDateObj = new Date(filterDate + 'T00:00:00Z'); 
+                            const currentEndDateObj = endDateFilter && endDateFilter >= filterDate ? new Date(endDateFilter + 'T00:00:00Z') : new Date(startDateObj);
+
+                            for (let d = new Date(startDateObj); d <= currentEndDateObj; d.setDate(d.getDate() + 1)) {
+                                const dateString = d.toISOString().slice(0,10);
+                                const keyForDay = `${dateString}_${filterClass}`;
+                                newRecords[keyForDay] = studentsInClass.map(student => ({
+                                    studentId: student.studentIdNo,
+                                    studentName: student.name,
+                                    status: statusToSet
+                                }));
+                            }
+                            return newRecords;
+                        });
+                        Swal.fire(statusToSet === 'มา' ? 'เช็คชื่อแล้ว!' : 'รีเซ็ตแล้ว!', `สถานะนักเรียนทุกคนถูก${actionText}แล้ว กรุณากดบันทึกเพื่อยืนยันการเปลี่ยนแปลงลง Google Sheet`, 'success');
                     }
                 });
+            };
+            
+            const handleSave = () => {
+                saveAttendanceToSheet(filterDate, endDateFilter, filterClass, studentsInClass, attendanceRecords);
             };
 
 
             return (
                 <div className="main-card">
                     <h2 className="text-3xl font-semibold mb-3 text-orange-600">หน้าเช็คชื่อนักเรียน</h2>
-                    <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 mb-3 items-end bg-orange-50 p-4 rounded-lg">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3 items-end bg-orange-50 p-4 rounded-lg">
                         <div>
-                            <label htmlFor="date-picker" className="block text-sm font-medium text-gray-700 mb-1">เลือกวันที่:</label>
-                            <input type="date" id="date-picker" className="w-full" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+                            <label htmlFor="start-date-picker" className="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น:</label>
+                            <input type="date" id="start-date-picker" className="w-full" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
                         </div>
                         <div>
-                            <label htmlFor="class-selector" className="block text-sm font-medium text-gray-700 mb-1">เลือกชั้นเรียน:</label>
-                            <select id="class-selector" className="w-full" value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
+                            <label htmlFor="end-date-picker" className="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด (ถ้ามี):</label>
+                            <input type="date" id="end-date-picker" className="w-full" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} min={filterDate} />
+                        </div>
+                        <div>
+                            <label htmlFor="class-selector-att" className="block text-sm font-medium text-gray-700 mb-1">เลือกชั้นเรียน:</label>
+                            <select id="class-selector-att" className="w-full" value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
                                 {classLevelsFull.map(level => <option key={level.abbr} value={level.abbr}>{level.full}</option>)}
                             </select>
                         </div>
-                        <button onClick={() => fetchAttendanceFromSheet(filterDate, filterClass)} className="btn-secondary h-12 text-base" disabled={isLoading}>
-                            <i className="fas fa-cloud-download-alt mr-2"></i>เรียกดูข้อมูล
+                    </div>
+                     <div className="grid md:grid-cols-3 gap-6 mb-3 items-end bg-orange-50 p-4 rounded-lg">
+                        <button onClick={() => fetchAttendanceFromSheet(filterDate, filterClass)} className="btn-secondary h-12 text-base w-full" disabled={isLoading}>
+                            <i className="fas fa-cloud-download-alt mr-2"></i>เรียกดู (วันที่เริ่มต้น)
                         </button>
-                         <button onClick={handleResetAttendance} className="btn-warning h-12 text-base" disabled={isLoading || studentsInClass.length === 0}>
-                            <i className="fas fa-undo mr-2"></i>รีเซ็ตสถานะ
+                         <button onClick={() => handleBulkAction('')} className="btn-warning h-12 text-base w-full" disabled={isLoading || studentsInClass.length === 0}>
+                            <i className="fas fa-undo mr-2"></i>รีเซ็ตสถานะช่วงวันที่
+                        </button>
+                        <button onClick={() => handleBulkAction('มา')} className="btn-info h-12 text-base w-full" disabled={isLoading || studentsInClass.length === 0}>
+                            <i className="fas fa-user-check mr-2"></i>มาทั้งหมด (ช่วงวันที่)
                         </button>
                     </div>
+
                      {filterClass && <p className="text-md text-orange-700 mb-6 font-medium">ครูประจำชั้น: {getTeacherName(filterClass)}</p>}
 
                     {isLoading && <p className="text-center py-4 text-orange-600">กำลังโหลดข้อมูล...</p>}
@@ -611,10 +755,10 @@
                     {!isLoading && studentsInClass.length > 0 && (
                         <div className="overflow-x-auto shadow-md rounded-lg">
                             <table className="min-w-full divide-y divide-orange-200 table-hover">
-                                <thead className="bg-orange-100"><tr><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">เลขที่</th><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ชื่อ-สกุล</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">สถานะ</th></tr></thead>
+                                <thead className="bg-orange-100"><tr><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">เลขที่</th><th className="px-6 py-3 text-left text-sm font-semibold text-orange-700 uppercase tracking-wider">ชื่อ-สกุล</th><th className="px-6 py-3 text-center text-sm font-semibold text-orange-700 uppercase tracking-wider">สถานะ (สำหรับวันที่เริ่มต้น)</th></tr></thead>
                                 <tbody className="bg-white divide-y divide-gray-200">{
                                     studentsInClass.map(student => {
-                                        const record = (currentClassAttendance || []).find(ar => ar.studentId === student.studentIdNo) || { status: '' };
+                                        const record = (displayClassAttendance || []).find(ar => ar.studentId === student.studentIdNo) || { status: '' };
                                         return (
                                             <tr key={student.id} className="hover:bg-orange-50 transition-colors duration-150">
                                                 <td className="px-6 py-4 whitespace-nowrap text-gray-700">{student.studentIdNo}</td><td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">{student.name}</td>
@@ -628,7 +772,7 @@
                         </div>
                     )}
                     <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <button onClick={() => saveAttendanceToSheet(filterDate, filterClass, currentClassAttendance.filter(att => att.status !== ''))} className="btn-primary w-full sm:w-auto" disabled={isLoading || studentsInClass.length === 0}><i className="fas fa-save mr-2"></i>บันทึกข้อมูลลง Google Sheet</button>
+                        <button onClick={handleSave} className="btn-primary w-full sm:w-auto" disabled={isLoading || studentsInClass.length === 0}><i className="fas fa-save mr-2"></i>บันทึกข้อมูลลง Google Sheet</button>
                         <button onClick={openGoogleSheet} className="btn-secondary w-full sm:w-auto"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button>
                     </div>
                 </div>);
@@ -639,20 +783,11 @@
             students, isLoading, classLevelsFull, getFullClassName, getTeacherName,
             openGoogleSheet, jsonpRequest, showPrintIndividualStats
         }) => {
-            const [mainStartDate, setMainStartDate] = React.useState(() => localStorage.getItem('defaultStatStartDate') || '2025-05-15'); 
+            const [mainStartDate, setMainStartDate] = React.useState('2025-05-15'); 
             const [mainEndDate, setMainEndDate] = React.useState(new Date().toISOString().slice(0,10));
             const [selectedStatClass, setSelectedStatClass] = React.useState(classLevelsFull.length > 0 ? classLevelsFull[0].abbr : ''); 
             const [studentStatsData, setStudentStatsData] = React.useState(null); 
             const [isStatsLoading, setIsStatsLoading] = React.useState(false);
-
-            const handleSetDefaultMainStartDate = () => {
-                if (mainStartDate) {
-                    localStorage.setItem('defaultStatStartDate', mainStartDate);
-                    Swal.fire('สำเร็จ!', `บันทึกวันที่เริ่มต้น (สำหรับสถิติรายบุคคล) เป็น ${new Date(mainStartDate).toLocaleDateString('th-TH')} แล้ว`, 'success');
-                } else {
-                    Swal.fire('ผิดพลาด!', 'กรุณาเลือกวันที่เริ่มต้น (สำหรับสถิติรายบุคคล) ก่อน', 'error');
-                }
-            };
 
             const calculateIndividualStatistics = async () => {
                 if (!mainStartDate || !mainEndDate) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกช่วงวันที่สำหรับสถิติรายบุคคล', 'warning'); return; }
@@ -705,7 +840,6 @@
                         </div>
                         {selectedStatClass && <p className="text-xs text-orange-700 mt-2">ครูประจำชั้น: {getTeacherName(selectedStatClass)}</p>}
                          <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center">
-                             <button onClick={handleSetDefaultMainStartDate} className="btn-secondary text-xs py-1 px-2" disabled={isLoading}><i className="fas fa-save mr-1"></i>ตั้งเป็นวันที่เริ่มต้นเริ่มต้น</button>
                              <button onClick={calculateIndividualStatistics} className="btn-primary h-12 text-base mt-2 sm:mt-0" disabled={isStatsLoading || isLoading}><i className="fas fa-calculator mr-2"></i>แสดงสถิติรายบุคคล</button>
                         </div>
                     </div>
@@ -746,12 +880,9 @@
             students, isLoading, classLevelsFull, getFullClassName, getTeacherName,
             openGoogleSheet, jsonpRequest 
         }) => {
-            const defaultInitialDate = localStorage.getItem('classAggSelectedDate') || new Date().toISOString().slice(0,10);
-            const [classAggSelectedDate, setClassAggSelectedDate] = React.useState(defaultInitialDate);
+            const [classAggSelectedDate, setClassAggSelectedDate] = React.useState(new Date().toISOString().slice(0,10));
             const [classAggStatsData, setClassAggStatsData] = React.useState(null);
             const [isClassStatsLoading, setIsClassStatsLoading] = React.useState(false);
-
-            React.useEffect(() => { localStorage.setItem('classAggSelectedDate', classAggSelectedDate); }, [classAggSelectedDate]);
 
             const calculateClassAggregateStatistics = async () => {
                 if (!classAggSelectedDate) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่สำหรับสถิติรวมตามชั้นเรียน', 'warning'); return; }
@@ -803,7 +934,7 @@
                             totalAbsent: grandTotalAbsent,
                             totalCheckedSessions: grandTotalChecked,
                             presentRate: grandTotalPresentRate,
-                            teacher: '-' // No specific teacher for grand total
+                            teacher: '-' 
                         };
 
                         setClassAggStatsData(calculatedClassStats);
@@ -862,8 +993,35 @@
                     <div className="mt-8 flex justify-end"><button onClick={openGoogleSheet} className="btn-secondary"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button></div>
                 </div>);
         };
+        
+        // --- Master Data Management Page (Combined Student and Teacher Management) ---
+        const MasterDataManagementPage = (props) => {
+            const [activeSubTab, setActiveSubTab] = React.useState('students'); // 'students' or 'teachers'
 
-        // --- Student Management Page ---
+            return (
+                <div className="main-card">
+                    <h2 className="text-3xl font-semibold mb-6 text-orange-600">จัดการข้อมูลหลัก</h2>
+                    <div className="mb-6">
+                        <button 
+                            className={`sub-tab-button ${activeSubTab === 'students' ? 'active' : ''}`}
+                            onClick={() => setActiveSubTab('students')}>
+                            <i className="fas fa-users-cog mr-2"></i>จัดการรายชื่อนักเรียน
+                        </button>
+                        <button 
+                            className={`sub-tab-button ${activeSubTab === 'teachers' ? 'active' : ''}`}
+                            onClick={() => setActiveSubTab('teachers')}>
+                             <i className="fas fa-chalkboard-teacher mr-2"></i>จัดการรายชื่อครู
+                        </button>
+                    </div>
+
+                    {activeSubTab === 'students' && <StudentManagementPage {...props} />}
+                    {activeSubTab === 'teachers' && <ManageTeachersPage {...props} />}
+                </div>
+            );
+        };
+
+
+        // --- Student Management Page (Now a sub-component) ---
         const StudentManagementPage = ({ 
             students, setStudents, isLoading, classLevelsFull, getFullClassName,
             fetchStudentsFromSheet, saveStudentsToSheet: saveAllStudentsToSheet, openGoogleSheet,
@@ -975,8 +1133,7 @@
             });
 
             return (
-                <div className="main-card">
-                    <h2 className="text-3xl font-semibold mb-6 text-orange-600">จัดการรายชื่อนักเรียน</h2>
+                <div className="mt-4"> 
                     <div className={`my-8 p-6 border rounded-lg ${editingStudentId ? 'editing-form' : 'border-orange-200 bg-orange-50/30'}`}>
                         <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-semibold text-orange-700">{editingStudentId ? 'แก้ไขข้อมูลนักเรียน' : 'เพิ่มนักเรียนใหม่ (ทีละคน)'}</h3>{editingStudentId && <span className="text-sm text-red-600 font-semibold">กำลังแก้ไขข้อมูล...</span>}</div>
                         <div className="grid md:grid-cols-3 gap-6 mb-4">
@@ -1022,7 +1179,7 @@
                 </div>);
         };
 
-        // --- Manage Teachers Page ---
+        // --- Manage Teachers Page (Now a sub-component) ---
         const ManageTeachersPage = ({ classLevelsFull, setClassLevelsFull, getFullClassName, isLoading, setIsLoading, jsonpRequest, fetchClassLevelsFullData }) => {
             const [localClassLevels, setLocalClassLevels] = React.useState(JSON.parse(JSON.stringify(classLevelsFull))); 
             const [newTeacherInputs, setNewTeacherInputs] = React.useState(classLevelsFull.reduce((acc, curr) => { acc[curr.abbr] = ""; return acc; }, {}));
@@ -1118,9 +1275,8 @@
 
 
             return (
-                <div className="main-card">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-3xl font-semibold text-orange-600">จัดการรายชื่อครูประจำชั้น</h2>
+                <div className="mt-4"> 
+                     <div className="flex justify-end mb-4">
                         <button onClick={fetchClassLevelsFullData} className="btn-secondary" disabled={isLoading}>
                             <i className="fas fa-sync-alt mr-2"></i>โหลดข้อมูลจาก Google Sheet
                         </button>
