@@ -118,7 +118,7 @@
         .btn-success:hover {
             background-color: #3CB371; /* MediumSeaGreen */
         }
-
+      
         .status-btn {
             padding: 0.375rem 0.625rem; /* 6px 10px */
             border-radius: 6px;
@@ -193,6 +193,14 @@
         ::-webkit-scrollbar-track { background: #FEFBF6; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #FFDAB9; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #FFB07C; }
+        
+        @media print {
+            body { background-color: white; }
+            .no-print { display: none !important; }
+            .print-container { padding: 0; margin: 0; box-shadow: none; border: none; }
+            table { font-size: 10pt; }
+            th, td { padding: 4px 8px; }
+        }
     </style>
 </head>
 <body>
@@ -205,8 +213,7 @@
     <script type="text/babel">
         const App = () => {
             const GAS_URL = "https://script.google.com/macros/s/AKfycbyfN18x74p5OTpZqKz8TnNsM-KujFk8EzBsCCFq1-yh3E1zCvdB5sRmHwYMJHtc8ogfEg/exec";
-            // console.log("Current GAS_URL used in this app:", GAS_URL); 
-
+            
             const [currentPage, setCurrentPage] = React.useState('attendance'); 
             const [students, setStudents] = React.useState([]); 
             const [attendanceRecords, setAttendanceRecords] = React.useState({}); 
@@ -268,7 +275,7 @@
                         url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
                     }
                     url += `&timestamp=${new Date().getTime()}`; 
-                    console.log("Requesting JSONP URL:", url); 
+                    // console.log("Requesting JSONP URL:", url); 
                     script.src = url;
                     script.onerror = (errEvent) => { 
                         console.error("JSONP script.onerror event object (raw):", errEvent); 
@@ -290,7 +297,6 @@
 
             const fetchClassLevelsFullData = async () => {
                 setIsLoading(true);
-                // console.log("Fetching class levels from GAS URL (inside fetchClassLevelsFullData):", GAS_URL); 
                 try {
                     const response = await jsonpRequest({ action: 'getClassLevelsFull' });
                     if (response.success && Array.isArray(response.data) && response.data.length > 0) {
@@ -311,15 +317,13 @@
                 }
             };
 
-
             React.useEffect(() => {
                 fetchClassLevelsFullData(); 
             }, []);
 
-
             const fetchStudentsFromSheet = async () => {
                 setIsLoading(true);
-                Swal.fire({ title: 'กำลังโหลดข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'กำลังโหลดข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                 try {
                     const response = await jsonpRequest({ action: 'getStudents' });
                     if (response.success && Array.isArray(response.data)) {
@@ -327,7 +331,7 @@
                             ...s, 
                             id: `${s.studentIdNo || 'sId_empty'}_${s.classLevel || 'cLvl_empty'}_${index}` 
                         })));
-                        Swal.close(); // Close loading only on success
+                        Swal.close(); 
                     } else {
                         Swal.fire('ผิดพลาด!', response.message || 'ไม่สามารถโหลดข้อมูลนักเรียนได้', 'error');
                         setStudents([]); 
@@ -342,7 +346,7 @@
 
             const saveStudentsToSheet = async (studentsToSave) => {
                 setIsLoading(true);
-                Swal.fire({ title: 'กำลังบันทึกข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'กำลังบันทึกข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                 try {
                     const studentsToSaveCleaned = studentsToSave.map(({ id, ...rest }) => rest);
                     const response = await jsonpRequest({ action: 'saveStudents', studentsData: JSON.stringify(studentsToSaveCleaned) });
@@ -388,13 +392,16 @@
                 }
             };
 
+            // This function now sends ONLY ONE day's data to GAS.
+            // The `endDate` parameter is effectively ignored for the save operation itself,
+            // but kept in the function signature if other parts of the app still pass it.
             const saveAttendanceToSheet = async (selectedDate, classLevel, studentsInClass, localAttendanceRecords) => {
                 if (!selectedDate || !classLevel || studentsInClass.length === 0 ) {
                      Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่, ชั้นเรียน และมีนักเรียนในชั้น', 'warning');
                     return;
                 }
                 setIsLoading(true);
-                Swal.fire({ title: 'กำลังบันทึกข้อมูลการเช็คชื่อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'กำลังบันทึกข้อมูลการเช็คชื่อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                 
                 const dateString = selectedDate; 
                 const attendanceKeyForDay = `${dateString}_${classLevel}`;
@@ -412,12 +419,12 @@
                 
                 try {
                     const response = await jsonpRequest({ 
-                        action: 'saveAttendance', 
+                        action: 'saveAttendance', // This action in GAS should handle a single day's payload
                         attendanceData: JSON.stringify(dailyPayload) 
                     });
                     if (response.success) {
                         Swal.fire('สำเร็จ!', response.message || `บันทึกข้อมูลการเช็คชื่อสำหรับวันที่ ${new Date(dateString).toLocaleDateString('th-TH')} เรียบร้อยแล้ว`, 'success');
-                        fetchAttendanceFromSheet(filterDate, filterClass); 
+                        fetchAttendanceFromSheet(filterDate, filterClass); // Refresh display for the current date
                     } else {
                         Swal.fire('ผิดพลาดในการบันทึก', response.message || `ไม่สามารถบันทึกข้อมูลสำหรับวันที่ ${new Date(dateString).toLocaleDateString('th-TH')} ได้`, 'error');
                     }
@@ -478,9 +485,6 @@
                         getTeacherName={getTeacherName}
                         filterDate={filterDate} 
                         setFilterDate={setFilterDate}
-                        // endDateFilter is no longer passed down as it's not used for range saving in AttendancePage
-                        // endDateFilter={endDateFilter} 
-                        // setEndDateFilter={setEndDateFilter}
                         filterClass={filterClass}
                         setFilterClass={setFilterClass}
                         fetchStudentsFromSheet={fetchStudentsFromSheet}
@@ -552,9 +556,9 @@
         // --- Attendance Page ---
         const AttendancePage = ({ 
             students, attendanceRecords, setAttendanceRecords, isLoading, classLevelsFull, getFullClassName, getTeacherName,
-            filterDate, setFilterDate, /* endDateFilter, setEndDateFilter, */ // endDateFilter removed
+            filterDate, setFilterDate, 
             filterClass, setFilterClass, 
-            fetchAttendanceFromSheet, saveAttendanceToSheet, openGoogleSheet 
+            fetchAttendanceFromSheet, saveAttendanceToSheet, openGoogleSheet
         }) => {
             const displayAttendanceKey = `${filterDate}_${filterClass}`; 
             const displayClassAttendance = attendanceRecords[displayAttendanceKey] || [];
@@ -645,7 +649,7 @@
             };
             
             const handleSave = () => {
-                saveAttendanceToSheet(filterDate, null, filterClass, studentsInClass, attendanceRecords);
+                saveAttendanceToSheet(filterDate, filterClass, studentsInClass, attendanceRecords);
             };
 
 
@@ -683,15 +687,16 @@
                     {!isLoading && studentsInClass.length > 0 && (
                         <div className="overflow-x-auto shadow-lg rounded-lg border border-orange-100">
                             <table className="min-w-full divide-y divide-orange-200">
-                                <thead className="table-header-group"><tr><th className="table-header-cell">เลขที่</th><th className="table-header-cell">ชื่อ-สกุล</th><th className="table-header-cell text-center">สถานะ (สำหรับวันที่เลือก)</th></tr></thead>
+                                <thead className="table-header-group"><tr><th className="table-header-cell">เลขที่</th><th className="table-header-cell">ชื่อ-สกุล</th><th className="table-header-cell text-center">สถานะ</th></tr></thead>
                                 <tbody className="bg-white divide-y divide-gray-200">{
                                     studentsInClass.sort((a,b) => parseInt(a.studentIdNo) - parseInt(b.studentIdNo)).map(student => {
                                         const record = (displayClassAttendance || []).find(ar => ar.studentId === student.studentIdNo) || { status: '' };
                                         return (
                                             <tr key={student.id} className="hover:bg-orange-50 transition-colors duration-150">
-                                                <td className="table-cell">{student.studentIdNo}</td><td className="table-cell font-medium text-gray-800">{student.name}</td>
+                                                <td className="table-cell">{student.studentIdNo}</td>
+                                                <td className="table-cell font-medium text-gray-800">{student.name}</td>
                                                 <td className="table-cell text-center">
-                                                    <div className="flex justify-center space-x-2">
+                                                    <div className="flex justify-center space-x-1 sm:space-x-2">
                                                         {['มา', 'ลา', 'ขาด'].map(statusOption => (<button key={statusOption} onClick={() => handleStatusChange(student.studentIdNo, statusOption)} className={`status-btn ${record.status === statusOption ? getStatusColor(statusOption) + ' active-status' : 'bg-gray-300 hover:bg-gray-400 text-gray-700'}`}>{statusOption}</button>))}
                                                     </div>
                                                 </td>
@@ -725,7 +730,7 @@
                 if (!selectedStatClass) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกห้องเรียน', 'warning'); return; }
 
                 setIsStatsLoading(true);
-                Swal.fire({ title: 'กำลังคำนวณสถิติรายบุคคล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'กำลังคำนวณสถิติรายบุคคล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                 try {
                     const response = await jsonpRequest({ action: 'getAttendanceRange', startDate: mainStartDate, endDate: mainEndDate });
                     if (response.success && Array.isArray(response.data)) {
@@ -816,7 +821,7 @@
                 if (!classAggSelectedDate) { Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่สำหรับสถิติรวมตามชั้นเรียน', 'warning'); return; }
                 if (students.length === 0) { Swal.fire('ไม่มีข้อมูลนักเรียน', 'กรุณาเพิ่มข้อมูลนักเรียนก่อนดูสถิติ', 'info'); return; }
                 setIsClassStatsLoading(true);
-                Swal.fire({ title: 'กำลังคำนวณสถิติรวมชั้นเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'กำลังคำนวณสถิติรวมชั้นเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                 try {
                     const response = await jsonpRequest({ action: 'getAttendanceRange', startDate: classAggSelectedDate, endDate: classAggSelectedDate });
                     if (response.success && Array.isArray(response.data)) {
@@ -979,7 +984,7 @@
                 if (editingStudentId) { 
                     const studentToEdit = students.find(s => s.id === editingStudentId); 
                     if (studentExists && studentToEdit && (studentToEdit.studentIdNo !== formStudentIdNo || studentToEdit.classLevel !== formClassLevel)) { Swal.fire('ข้อมูลซ้ำซ้อน', `มีนักเรียนเลขที่ ${formStudentIdNo} ในชั้น ${getFullClassName(formClassLevel)} อยู่แล้ว`, 'error'); return; }
-                    Swal.fire({ title: 'กำลังแก้ไขข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    Swal.fire({ title: 'กำลังแก้ไขข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                     try {
                         const response = await jsonpRequest({ action: 'editStudent', studentData: JSON.stringify({ oldStudentIdNo: studentToEdit.studentIdNo, oldClassLevel: studentToEdit.classLevel, ...newStudentData }) });
                         if (response.success) { Swal.fire('สำเร็จ!', 'แก้ไขข้อมูลนักเรียนเรียบร้อยแล้ว', 'success'); fetchStudentsFromSheet(); } 
@@ -987,7 +992,7 @@
                     } catch (err) { Swal.fire('ผิดพลาด!', 'การเชื่อมต่อล้มเหลวขณะแก้ไข', 'error'); }
                 } else { 
                     if (studentExists) { Swal.fire('ข้อมูลซ้ำซ้อน', `มีนักเรียนเลขที่ ${formStudentIdNo} ในชั้น ${getFullClassName(formClassLevel)} อยู่แล้ว`, 'error'); return; }
-                    Swal.fire({ title: 'กำลังเพิ่มข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    Swal.fire({ title: 'กำลังเพิ่มข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                      try {
                         const response = await jsonpRequest({ action: 'addStudent', studentData: JSON.stringify(newStudentData) });
                         if (response.success) { Swal.fire('สำเร็จ!', 'เพิ่มนักเรียนเรียบร้อยแล้ว', 'success'); fetchStudentsFromSheet(); } 
@@ -1016,7 +1021,7 @@
                 });
                 if (errors.length > 0) { Swal.fire({ title: 'มีข้อผิดพลาดในการเพิ่มข้อมูล', html: `<div class="text-left max-h-60 overflow-y-auto">${errors.join('<br>')}</div>`, icon: 'error' }); return; }
                 if (newStudentsList.length > 0) {
-                    Swal.fire({ title: 'กำลังเพิ่มข้อมูลนักเรียนหลายคน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    Swal.fire({ title: 'กำลังเพิ่มข้อมูลนักเรียนหลายคน...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                     try {
                         const response = await jsonpRequest({ action: 'addMultipleStudents', studentsData: JSON.stringify(newStudentsList) });
                         if (response.success) { Swal.fire('สำเร็จ!', `เพิ่มนักเรียน ${newStudentsList.length} คนเรียบร้อยแล้ว`, 'success'); fetchStudentsFromSheet(); setMultiAddText(''); } 
@@ -1034,7 +1039,7 @@
                 Swal.fire({ title: 'ยืนยันการลบ', text: `คุณต้องการลบนักเรียน ${studentToDelete.name} (เลขที่ ${studentToDelete.studentIdNo}, ชั้น ${getFullClassName(studentToDelete.classLevel)}) ใช่หรือไม่? ข้อมูลนี้จะถูกลบออกจากระบบและ Google Sheet`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ใช่, ลบเลย!', cancelButtonText: 'ยกเลิก'
                 }).then(async (result) => {
                     if (result.isConfirmed) {
-                        Swal.fire({ title: 'กำลังลบข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        Swal.fire({ title: 'กำลังลบข้อมูลนักเรียน...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                         try {
                             const response = await jsonpRequest({ action: 'deleteStudent', studentIdNo: studentToDelete.studentIdNo, classLevel: studentToDelete.classLevel });
                             if (response.success) { Swal.fire('สำเร็จ!', 'ลบนักเรียนเรียบร้อยแล้ว', 'success'); fetchStudentsFromSheet(); } 
@@ -1177,7 +1182,7 @@
 
             const handleSaveChangesToSheet = async () => {
                 if (typeof setIsLoading === 'function') setIsLoading(true); else console.error("setIsLoading is not a function in ManageTeachersPage");
-                Swal.fire({ title: 'กำลังบันทึกข้อมูลครู...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'กำลังบันทึกข้อมูลครู...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                 try {
                     const response = await jsonpRequest({ 
                         action: 'saveAllClassTeachers', 
