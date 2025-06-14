@@ -184,9 +184,31 @@
         }
         .table-cell {
             padding: 0.75rem 1rem;
-            white-space: nowrap;
+            /* white-space: nowrap; */ /* Removed to allow wrapping */
             color: #4A5568; /* Gray 700 */
+            vertical-align: top; /* Align content to the top of the cell */
         }
+         .teacher-name-pill {
+            display: inline-block;
+            background-color: #FFDAB9; /* Peach Puff */
+            color: #8B4513; /* SaddleBrown */
+            padding: 0.25rem 0.75rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        .teacher-name-pill .remove-teacher-btn {
+            margin-left: 0.5rem;
+            color: #CD5C5C; /* IndianRed */
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .teacher-name-pill .remove-teacher-btn:hover {
+            color: #A52A2A; /* Brown */
+        }
+
 
         /* Custom scrollbar for a softer look */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -392,9 +414,6 @@
                 }
             };
 
-            // This function now sends ONLY ONE day's data to GAS.
-            // The `endDate` parameter is effectively ignored for the save operation itself,
-            // but kept in the function signature if other parts of the app still pass it.
             const saveAttendanceToSheet = async (selectedDate, classLevel, studentsInClass, localAttendanceRecords) => {
                 if (!selectedDate || !classLevel || studentsInClass.length === 0 ) {
                      Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกวันที่, ชั้นเรียน และมีนักเรียนในชั้น', 'warning');
@@ -419,12 +438,12 @@
                 
                 try {
                     const response = await jsonpRequest({ 
-                        action: 'saveAttendance', // This action in GAS should handle a single day's payload
+                        action: 'saveAttendance', 
                         attendanceData: JSON.stringify(dailyPayload) 
                     });
                     if (response.success) {
                         Swal.fire('สำเร็จ!', response.message || `บันทึกข้อมูลการเช็คชื่อสำหรับวันที่ ${new Date(dateString).toLocaleDateString('th-TH')} เรียบร้อยแล้ว`, 'success');
-                        fetchAttendanceFromSheet(filterDate, filterClass); // Refresh display for the current date
+                        fetchAttendanceFromSheet(filterDate, filterClass); 
                     } else {
                         Swal.fire('ผิดพลาดในการบันทึก', response.message || `ไม่สามารถบันทึกข้อมูลสำหรับวันที่ ${new Date(dateString).toLocaleDateString('th-TH')} ได้`, 'error');
                     }
@@ -467,35 +486,37 @@
             }
 
             return (
-                <div className="min-h-screen bg-[#FEFBF6] p-4 md:p-8">
-                    <Header />
-                    <NavigationTabs currentPage={currentPage} setCurrentPage={setCurrentPage} />
-                    <MainContent 
-                        currentPage={currentPage} 
-                        students={students}
-                        setStudents={setStudents}
-                        attendanceRecords={attendanceRecords}
-                        setAttendanceRecords={setAttendanceRecords}
-                        isLoading={isLoading}
-                        setIsLoading={setIsLoading} 
-                        classLevelsFull={classLevelsFull} 
-                        setClassLevelsFull={setClassLevelsFull} 
-                        fetchClassLevelsFullData={fetchClassLevelsFullData} 
-                        getFullClassName={getFullClassName} 
-                        getTeacherName={getTeacherName}
-                        filterDate={filterDate} 
-                        setFilterDate={setFilterDate}
-                        filterClass={filterClass}
-                        setFilterClass={setFilterClass}
-                        fetchStudentsFromSheet={fetchStudentsFromSheet}
-                        saveStudentsToSheet={saveStudentsToSheet}
-                        fetchAttendanceFromSheet={fetchAttendanceFromSheet}
-                        saveAttendanceToSheet={saveAttendanceToSheet}
-                        openGoogleSheet={openGoogleSheet}
-                        jsonpRequest={jsonpRequest} 
-                        GAS_URL={GAS_URL} 
-                        showPrintIndividualStats={handleShowPrintIndividualStats}
-                    />
+                <div className="min-h-screen bg-[#FEFBF6] py-4 md:py-8">
+                    <div className="w-full lg:w-4/5 lg:max-w-7xl mx-auto px-4 sm:px-0">
+                        <Header />
+                        <NavigationTabs currentPage={currentPage} setCurrentPage={setCurrentPage} />
+                        <MainContent 
+                            currentPage={currentPage} 
+                            students={students}
+                            setStudents={setStudents}
+                            attendanceRecords={attendanceRecords}
+                            setAttendanceRecords={setAttendanceRecords}
+                            isLoading={isLoading}
+                            setIsLoading={setIsLoading} 
+                            classLevelsFull={classLevelsFull} 
+                            setClassLevelsFull={setClassLevelsFull} 
+                            fetchClassLevelsFullData={fetchClassLevelsFullData} 
+                            getFullClassName={getFullClassName} 
+                            getTeacherName={getTeacherName}
+                            filterDate={filterDate} 
+                            setFilterDate={setFilterDate}
+                            filterClass={filterClass}
+                            setFilterClass={setFilterClass}
+                            fetchStudentsFromSheet={fetchStudentsFromSheet}
+                            saveStudentsToSheet={saveStudentsToSheet}
+                            fetchAttendanceFromSheet={fetchAttendanceFromSheet}
+                            saveAttendanceToSheet={saveAttendanceToSheet}
+                            openGoogleSheet={openGoogleSheet}
+                            jsonpRequest={jsonpRequest} 
+                            GAS_URL={GAS_URL} 
+                            showPrintIndividualStats={handleShowPrintIndividualStats}
+                        />
+                    </div>
                 </div>
             );
         };
@@ -1116,77 +1137,49 @@
         // --- Manage Teachers Page (Now a sub-component) ---
         const ManageTeachersPage = ({ classLevelsFull, setClassLevelsFull, getFullClassName, isLoading, setIsLoading, jsonpRequest, fetchClassLevelsFullData, openGoogleSheet }) => {
             const [localClassLevels, setLocalClassLevels] = React.useState(JSON.parse(JSON.stringify(classLevelsFull))); 
-            const [newTeacherInputs, setNewTeacherInputs] = React.useState(classLevelsFull.reduce((acc, curr) => { acc[curr.abbr] = ""; return acc; }, {}));
-            const [editingTeacherInfo, setEditingTeacherInfo] = React.useState({ classAbbr: null, teacherIndex: null, currentEditText: '' });
+            const [editingTeacherInfo, setEditingTeacherInfo] = React.useState({ classAbbr: null, currentEditText: '' });
 
-            const handleTeacherNameInputChange = (classAbbr, teacherIndex, newName) => {
-                setEditingTeacherInfo(prev => ({ ...prev, currentEditText: newName }));
+            const handleTeacherNameInputChange = (classAbbr, newName) => {
+                setEditingTeacherInfo({ classAbbr: classAbbr, currentEditText: newName });
             };
             
-            const startEditTeacher = (classAbbr, teacherIndex, currentName) => {
-                setEditingTeacherInfo({ classAbbr, teacherIndex, currentEditText: currentName });
+            const startEditTeacher = (classAbbr, currentTeacherNames) => {
+                setEditingTeacherInfo({ classAbbr: classAbbr, currentEditText: Array.isArray(currentTeacherNames) ? currentTeacherNames.join(', ') : '' });
             };
 
             const cancelEditTeacher = () => {
-                setEditingTeacherInfo({ classAbbr: null, teacherIndex: null, currentEditText: '' });
+                setEditingTeacherInfo({ classAbbr: null, currentEditText: '' });
             };
 
-            const saveTeacherEdit = (classAbbr, teacherIndex) => {
-                const updatedName = editingTeacherInfo.currentEditText.trim();
-                if (!updatedName) {
-                    Swal.fire('ข้อมูลไม่ครบถ้วน', 'ชื่อครูไม่สามารถเว้นว่างได้', 'warning');
-                    return;
-                }
+            const saveTeacherEdit = (classAbbr) => {
+                const updatedNamesString = editingTeacherInfo.currentEditText.trim();
+                const updatedTeacherArray = updatedNamesString ? updatedNamesString.split(',').map(name => name.trim()).filter(name => name) : [];
+                
                 setLocalClassLevels(prevLevels => 
                     prevLevels.map(level => 
                         level.abbr === classAbbr ? { 
                             ...level, 
-                            teacher: level.teacher.map((tName, idx) => idx === teacherIndex ? updatedName : tName) 
+                            teacher: updatedTeacherArray 
                         } : level
                     )
                 );
                 cancelEditTeacher(); 
             };
             
-            const handleAddNewTeacherInputChange = (classAbbr, value) => {
-                setNewTeacherInputs(prev => ({...prev, [classAbbr]: value}));
-            };
-
-            const handleAddTeacherToClass = (classAbbr) => {
-                const newTeacherName = newTeacherInputs[classAbbr]?.trim();
-                if (!newTeacherName) {
-                    Swal.fire('ข้อมูลไม่ครบถ้วน', 'กรุณาป้อนชื่อครูที่ต้องการเพิ่ม', 'warning');
-                    return;
-                }
-                setLocalClassLevels(prevLevels => 
-                    prevLevels.map(level => 
-                        level.abbr === classAbbr ? { 
-                            ...level, 
-                            teacher: [...(level.teacher || []), newTeacherName] 
-                        } : level
-                    )
-                );
-                setNewTeacherInputs(prev => ({...prev, [classAbbr]: ""})); 
-            };
-            
-            const handleRemoveTeacherFromClass = (classAbbr, teacherIndexToRemove) => {
-                 setLocalClassLevels(prevLevels => 
-                    prevLevels.map(level => 
-                        level.abbr === classAbbr ? { 
-                            ...level, 
-                            teacher: (level.teacher || []).filter((_, idx) => idx !== teacherIndexToRemove)
-                        } : level
-                    )
-                );
-            };
-
             const handleSaveChangesToSheet = async () => {
                 if (typeof setIsLoading === 'function') setIsLoading(true); else console.error("setIsLoading is not a function in ManageTeachersPage");
                 Swal.fire({ title: 'กำลังบันทึกข้อมูลครู...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
                 try {
+                    // Prepare data for GAS: teacher property should be an array of strings
+                    const dataToSave = localClassLevels.map(level => ({
+                        abbr: level.abbr,
+                        full: level.full,
+                        teacher: Array.isArray(level.teacher) ? level.teacher : (level.teacher ? String(level.teacher).split(',').map(t=>t.trim()).filter(t=>t) : [])
+                    }));
+
                     const response = await jsonpRequest({ 
                         action: 'saveAllClassTeachers', 
-                        classLevelsData: JSON.stringify(localClassLevels) 
+                        classLevelsData: JSON.stringify(dataToSave) 
                     });
 
                     if (response.success) {
@@ -1204,64 +1197,72 @@
             };
             
             React.useEffect(() => {
-                setLocalClassLevels(JSON.parse(JSON.stringify(classLevelsFull.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })))));
+                 setLocalClassLevels(JSON.parse(JSON.stringify(classLevelsFull.map(cls => ({...cls, teacher: Array.isArray(cls.teacher) ? cls.teacher : (cls.teacher ? [cls.teacher] : []) })))));
             }, [classLevelsFull]);
 
 
             return (
-                <div className="mt-4"> 
-                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold text-orange-600">รายชื่อครูประจำชั้น</h3>
-                        <div className="flex gap-2">
-                            <button onClick={fetchClassLevelsFullData} className="btn btn-secondary" disabled={isLoading}>
-                                <i className="fas fa-sync-alt mr-2"></i>โหลดข้อมูลล่าสุด
-                            </button>
-                             <button onClick={openGoogleSheet} className="btn btn-secondary"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button>
+                 <div className="mt-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-semibold text-orange-700">จัดการรายชื่อครูประจำชั้น</h2>
+                        <div className="flex items-center gap-3">
+                            <button onClick={fetchClassLevelsFullData} className="btn btn-secondary" disabled={isLoading}><i className="fas fa-sync-alt mr-2"></i>โหลดข้อมูลล่าสุด</button>
+                            <button onClick={openGoogleSheet} className="btn btn-secondary"><i className="fas fa-external-link-alt mr-2"></i>แสดงข้อมูล Google Sheet</button>
                         </div>
                     </div>
-                    <div className="space-y-6">
-                        {localClassLevels.map(level => (
-                            <div key={level.abbr} className="p-4 border border-orange-200 rounded-lg shadow-sm bg-orange-50/30">
-                                <h3 className="text-xl font-semibold text-orange-700 mb-3">{level.full} ({level.abbr})</h3>
-                                {(level.teacher || []).map((teacherName, index) => (
-                                    <div key={index} className="flex items-center gap-2 mb-2">
-                                        {editingTeacherInfo.classAbbr === level.abbr && editingTeacherInfo.teacherIndex === index ? (
-                                            <>
-                                                <input 
+                    <div className="overflow-x-auto shadow-lg rounded-lg border border-orange-100">
+                        <table className="min-w-full divide-y divide-orange-200">
+                            <thead className="table-header-group">
+                                <tr>
+                                    <th className="table-header-cell w-1/3">ชั้นเรียน</th>
+                                    <th className="table-header-cell w-2/3">ครูประจำชั้น (ป้อนชื่อคั่นด้วยจุลภาค , หากมีหลายคน)</th>
+                                    <th className="table-header-cell text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {localClassLevels.map((level) => (
+                                    <tr key={level.abbr} className="hover:bg-orange-50 transition-colors duration-150">
+                                        <td className="table-cell font-medium">{level.full} ({level.abbr})</td>
+                                        <td className="table-cell">
+                                            {editingTeacherInfo.classAbbr === level.abbr ? (
+                                                <input
                                                     type="text"
                                                     value={editingTeacherInfo.currentEditText}
-                                                    onChange={(e) => handleTeacherNameInputChange(level.abbr, index, e.target.value)}
+                                                    onChange={(e) => handleTeacherNameInputChange(level.abbr, e.target.value)}
                                                     className="w-full p-2 border border-orange-400 rounded-md"
+                                                    placeholder="เช่น ครู ก, ครู ข"
                                                 />
-                                                <button onClick={() => saveTeacherEdit(level.abbr, index)} className="btn btn-success text-xs p-2"><i className="fas fa-check"></i></button>
-                                                <button onClick={cancelEditTeacher} className="btn btn-secondary text-xs p-2"><i className="fas fa-times"></i></button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="flex-grow p-2 text-gray-800">{teacherName}</span>
-                                                <button onClick={() => startEditTeacher(level.abbr, index, teacherName)} className="text-blue-600 hover:text-blue-800 p-2" title="แก้ไขชื่อครู"><i className="fas fa-edit"></i></button>
-                                                <button onClick={() => handleRemoveTeacherFromClass(level.abbr, index)} className="btn btn-danger text-xs" title="ลบครูคนนี้"><i className="fas fa-trash-alt"></i></button>
-                                            </>
-                                        )}
-                                    </div>
+                                            ) : (
+                                                (level.teacher && level.teacher.length > 0) ? level.teacher.join(', ') : <span className="text-gray-400">ยังไม่มีข้อมูลครู</span>
+                                            )}
+                                        </td>
+                                        <td className="table-cell text-center">
+                                            {editingTeacherInfo.classAbbr === level.abbr ? (
+                                                <div className="flex justify-center gap-2">
+                                                    <button 
+                                                        onClick={() => saveTeacherEdit(level.abbr)} 
+                                                        className="btn btn-success text-xs p-2"
+                                                        title="บันทึกการแก้ไข"
+                                                    >
+                                                        <i className="fas fa-check"></i>
+                                                    </button>
+                                                    <button onClick={cancelEditTeacher} className="btn btn-secondary text-xs p-2" title="ยกเลิก">
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => startEditTeacher(level.abbr, level.teacher)} 
+                                                    className="text-blue-600 hover:text-blue-800 p-2" 
+                                                    title="แก้ไขรายชื่อครู">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
                                 ))}
-                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-orange-200">
-                                     <input 
-                                        type="text"
-                                        value={newTeacherInputs[level.abbr] || ""}
-                                        onChange={(e) => handleAddNewTeacherInputChange(level.abbr, e.target.value)}
-                                        className="w-full p-2 border border-[#FFCC80] rounded-md"
-                                        placeholder="เพิ่มชื่อครูใหม่"
-                                    />
-                                    <button 
-                                        onClick={() => handleAddTeacherToClass(level.abbr)}
-                                        className="btn btn-secondary text-sm py-2 px-3 whitespace-nowrap"
-                                    >
-                                        <i className="fas fa-plus mr-1"></i>เพิ่มครู
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            </tbody>
+                        </table>
                     </div>
                     <div className="mt-8 flex justify-center">
                         <button 
